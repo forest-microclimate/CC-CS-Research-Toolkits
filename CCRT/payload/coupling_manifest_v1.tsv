@@ -1,0 +1,91 @@
+# FORMAT: machine-manifest
+# DOC_ID: crt/coupling-manifest
+# DOC_CURRENCY: CURRENT
+# AUTHORITY_CLASS: A0_VERIFIED_LIVE
+# VERIFICATION_STATUS: VERIFIED (re-derived from CC payload primary record 2026-07-17; 43 couplings semantically classified; 7 LLM-misclassifications hand-corrected against verbatim agent text. EXTENDED 2026-07-28: +software-developer agent row + 3 DEDICATED skill rows, re-derived from the new agent body)
+# TASK_STATUS: FROZEN_V1 (unfrozen + re-frozen 2026-07-28 twice: software-developer addition, then the verification-integrity pass +3 STANDALONE skills; prior freeze 2026-07-17)
+# AS_OF: 2026-07-28
+# TOPIC_ID: cc-agent-skill-coupling
+# PRIMARY_READER: install.sh selection logic + verify_coupling.sh gate + the manifest->skillNames generator
+# SOURCE_OF_TRUTH: claude-research-toolkit/payload/agents/*.md (18 agents) x claude-research-toolkit/payload/skills/*/ (46 skills; counts recounted 2026-08-03 — manifest skill rows match payload/skills dirs 1:1 at 46)
+# METHOD: word-boundary skill-token scan of each agent body -> per-referrer semantic class (OPERATIONAL/DEFER-TO create a dependency; BOUNDARY/EXAMPLE do NOT) -> tier
+# TIER_RULE: 0 dep referrers=STANDALONE; 1=DEDICATED; >=2=SHARED; deferred-family=DEFERRED; kind=agent=AGENT-ONLY
+# COUNTS: {'DEDICATED': 25, 'STANDALONE': 12, 'DEFERRED': 2, 'SHARED': 7, 'AGENT-ONLY': 5}  (RECOUNTED 2026-08-03 from the actual SECTION-1 rows: 51 rows = 46 skill + 5 agent; supersedes the stale pre-release figures 22/18/3/6/5 which summed to 54)
+# PROVENANCE_NOTE: supersedes coupling_manifest_v0_DRAFT.csv (8d171601); 6 draft-drift + 2 semantic tier corrections recorded in the note column
+
+name	kind	tier	dep_referrers	nondep_referrers	dep_semantics	science_present	install_rule	note
+formal-argument-checker	agent	AGENT-ONLY	-	-	-	yes	agent: selecting it pulls its DEDICATED+SHARED skill deps	pure role
+science-writing-stylist	agent	AGENT-ONLY	-	-	-	yes	agent: selecting it pulls its DEDICATED+SHARED skill deps	pure role
+version-control-docs	agent	AGENT-ONLY	-	-	-	no	agent: selecting it pulls its DEDICATED+SHARED skill deps	pure role
+aggregation-jensen-bias	skill	DEDICATED	micromet-reconstructor	-	micromet-reconstructor:DEFER-TO	yes	install IFF micromet-reconstructor selected; selecting micromet-reconstructor REQUIRES this skill	referenced by micromet-reconstructor (bare)
+bash-hook-contract	skill	DEDICATED	agent-tooling-engineer	-	agent-tooling-engineer:DEFER-TO	yes	install IFF agent-tooling-engineer selected; selecting agent-tooling-engineer REQUIRES this skill	referenced by agent-tooling-engineer (backtick)
+biosphere-atmosphere-flux-exchange	skill	DEDICATED	ml-hybrid-process-modeler	-	ml-hybrid-process-modeler:OPERATIONAL	yes	install IFF ml-hybrid-process-modeler selected; selecting ml-hybrid-process-modeler REQUIRES this skill	referenced by ml-hybrid-process-modeler (backtick)
+brms-hierarchical-fitting	skill	DEDICATED	micromet-reconstructor	-	micromet-reconstructor:DEFER-TO	yes	install IFF micromet-reconstructor selected; selecting micromet-reconstructor REQUIRES this skill	referenced by micromet-reconstructor (bare)
+calibrated-uq-for-ml	skill	DEDICATED	machine-learning-scientist	-	machine-learning-scientist:OPERATIONAL	yes	install IFF machine-learning-scientist selected; selecting machine-learning-scientist REQUIRES this skill	referenced by machine-learning-scientist (backtick)
+design-rationale	skill	DEDICATED	design-rationale-analyst	-	design-rationale-analyst:OPERATIONAL	yes	install IFF design-rationale-analyst selected; selecting design-rationale-analyst REQUIRES this skill	referenced by design-rationale-analyst (backtick)
+eliciting-llm-behavior	skill	DEDICATED	prompt-engineer	-	prompt-engineer:OPERATIONAL	yes	install IFF prompt-engineer selected; selecting prompt-engineer REQUIRES this skill	referenced by prompt-engineer (backtick)
+gap-fill-imputation	skill	DEDICATED	micromet-reconstructor	-	micromet-reconstructor:DEFER-TO	yes	install IFF micromet-reconstructor selected; selecting micromet-reconstructor REQUIRES this skill	referenced by micromet-reconstructor (bare)
+julia-performance-correctness	skill	DEDICATED	code-review-debugger	-	code-review-debugger:OPERATIONAL	yes	install IFF code-review-debugger selected; selecting code-review-debugger REQUIRES this skill	referenced by code-review-debugger (backtick)
+micromet-height-interpolation	skill	DEDICATED	micromet-reconstructor	-	micromet-reconstructor:DEFER-TO	yes	install IFF micromet-reconstructor selected; selecting micromet-reconstructor REQUIRES this skill	referenced by micromet-reconstructor (bare)
+ml-emulator-surrogate	skill	DEDICATED	ml-hybrid-process-modeler	-	ml-hybrid-process-modeler:OPERATIONAL	yes	install IFF ml-hybrid-process-modeler selected; selecting ml-hybrid-process-modeler REQUIRES this skill	referenced by ml-hybrid-process-modeler (backtick)
+multi-source-fusion-bias-correction	skill	DEDICATED	machine-learning-scientist	-	machine-learning-scientist:OPERATIONAL	yes	install IFF machine-learning-scientist selected; selecting machine-learning-scientist REQUIRES this skill	referenced by machine-learning-scientist (backtick)
+physics-informed-ml	skill	DEDICATED	ml-hybrid-process-modeler	-	ml-hybrid-process-modeler:OPERATIONAL	yes	install IFF ml-hybrid-process-modeler selected; selecting ml-hybrid-process-modeler REQUIRES this skill	referenced by ml-hybrid-process-modeler (backtick)
+sci-file-index	skill	DEDICATED	sci-file-indexer	-	sci-file-indexer:OPERATIONAL	yes	install IFF sci-file-indexer selected; selecting sci-file-indexer REQUIRES this skill	referenced by sci-file-indexer (backtick)
+scientific-ml-fundamentals	skill	DEDICATED	machine-learning-scientist	-	machine-learning-scientist:OPERATIONAL	yes	install IFF machine-learning-scientist selected; selecting machine-learning-scientist REQUIRES this skill	referenced by machine-learning-scientist (backtick)
+teaching-narrative	skill	DEDICATED	design-rationale-analyst	-	design-rationale-analyst:DEFER-TO	yes	install IFF design-rationale-analyst selected; selecting design-rationale-analyst REQUIRES this skill	referenced by design-rationale-analyst (backtick)
+temporal-qc-outlier-detection	skill	DEDICATED	micromet-reconstructor	-	micromet-reconstructor:DEFER-TO	yes	install IFF micromet-reconstructor selected; selecting micromet-reconstructor REQUIRES this skill	referenced by micromet-reconstructor (bare)
+toolkit-extension-authoring	skill	DEDICATED	agent-tooling-engineer	-	agent-tooling-engineer:OPERATIONAL	yes	install IFF agent-tooling-engineer selected; selecting agent-tooling-engineer REQUIRES this skill	referenced by agent-tooling-engineer (backtick)
+tree-ensembles	skill	DEDICATED	machine-learning-scientist	-	machine-learning-scientist:OPERATIONAL	yes	install IFF machine-learning-scientist selected; selecting machine-learning-scientist REQUIRES this skill	referenced by machine-learning-scientist (backtick)
+baton	skill	DEFERRED	-	-	-	no	deferred/held-back; never auto-installed	deferred feature
+folio	skill	DEFERRED	-	-	-	no	deferred/held-back; never auto-installed	deferred feature
+machine-md	skill	SHARED	prompt-engineer;machine-doc-reviewer	agent-tooling-engineer;llm-doc-architect	prompt-engineer:OPERATIONAL;machine-doc-reviewer:OPERATIONAL	yes	install IFF any of {prompt-engineer,machine-doc-reviewer} selected	4 agents (mixed); ALSO installable standalone (general writing discipline)
+mgcv-temporal-gam	skill	SHARED	micromet-reconstructor;code-review-debugger	-	micromet-reconstructor:DEFER-TO;code-review-debugger:DEFER-TO	yes	install IFF any of {micromet-reconstructor,code-review-debugger} selected	2 agents (mixed)
+reproduce-model-from-literature	skill	SHARED	ecophysiology-modeler;dynamical-systems-modeler	-	ecophysiology-modeler:DEFER-TO;dynamical-systems-modeler:DEFER-TO	yes	install IFF any of {ecophysiology-modeler,dynamical-systems-modeler} selected	2 agents (bare)
+research-stats-advisor	skill	SHARED	micromet-reconstructor;ml-hybrid-process-modeler;machine-learning-scientist	design-rationale-analyst;agent-tooling-engineer;llm-doc-architect;research-data-manager;ecophysiology-modeler;dynamical-systems-modeler	micromet-reconstructor:DEFER-TO;ml-hybrid-process-modeler:DEFER-TO;machine-learning-scientist:DEFER-TO	no	install IFF any of {micromet-reconstructor,ml-hybrid-process-modeler,machine-learning-scientist} selected	9 agents (bare); CORRECTION vs draft evidence: all refs are bare prose, not backtick
+temporal-block-cv	skill	SHARED	micromet-reconstructor;code-review-debugger;machine-learning-scientist	-	micromet-reconstructor:DEFER-TO;code-review-debugger:DEFER-TO;machine-learning-scientist:OPERATIONAL	yes	install IFF any of {micromet-reconstructor,code-review-debugger,machine-learning-scientist} selected	3 agents (mixed)
+tz-safe-timestamps	skill	SHARED	micromet-reconstructor;code-review-debugger	-	micromet-reconstructor:DEFER-TO;code-review-debugger:DEFER-TO	yes	install IFF any of {micromet-reconstructor,code-review-debugger} selected	2 agents (mixed)
+capability-audit	skill	STANDALONE	-	-	-	no	installable alone; imposes NO agent requirement	user/main-agent/dial invoked
+collab	skill	STANDALONE	-	-	-	yes	installable alone; imposes NO agent requirement	agency-dial skill (/collab)
+expert-prose-style	skill	STANDALONE	-	design-rationale-analyst	-	yes	installable alone; imposes NO agent requirement	referenced by design-rationale-analyst (backtick); CORRECTION vs draft: SWS pairing had no primary-record support -> DRA
+plan	skill	STANDALONE	-	-	-	yes	installable alone; imposes NO agent requirement	agency-dial skill (/plan)
+preflight-parallel	skill	SHARED	planner	-	planner:OPERATIONAL	yes	install IFF planner selected; ALSO installable standalone (general concurrency-sizing utility)	referenced by planner (backtick, conditional: fan-out concurrency sizing); ALSO user/main-agent/dial invoked
+sci-library-curate	skill	STANDALONE	-	-	-	yes	installable alone; imposes NO agent requirement	CORRECTION vs draft: no agent refs it + sci_lib_common.py/verify_sci_lib_sync absent in CC -> STANDALONE (was DEDICATED+
+solo	skill	STANDALONE	-	-	-	yes	installable alone; imposes NO agent requirement	agency-dial skill (/solo)
+writing-science	skill	STANDALONE	-	design-rationale-analyst	-	yes	installable alone; imposes NO agent requirement	referenced by design-rationale-analyst (backtick); CORRECTION vs draft: SWS pairing had no primary-record support -> DRA
+planner	agent	AGENT-ONLY	-	-	-	yes	agent: selecting it pulls its DEDICATED+SHARED skill deps	pure role (planning lead); pulls delegation-planning+directing-execution+request-archetypes (DEDICATED) + preflight-parallel (STANDALONE)
+delegation-planning	skill	DEDICATED	planner	-	planner:OPERATIONAL	yes	install IFF planner selected; selecting planner REQUIRES this skill	referenced by planner (backtick, loaded by default)
+directing-execution	skill	DEDICATED	planner	-	planner:OPERATIONAL	yes	install IFF planner selected; selecting planner REQUIRES this skill	referenced by planner (backtick, loaded by default)
+request-archetypes	skill	DEDICATED	planner	-	planner:OPERATIONAL	yes	install IFF planner selected; selecting planner REQUIRES this skill	referenced by planner (STEP ZERO, loaded first)
+scanned-pdf-ocr	skill	STANDALONE	-	-	-	yes	installable alone; imposes NO agent requirement	user/main-agent invoked (OCR utility)
+software-developer	agent	AGENT-ONLY	-	-	-	yes	agent: selecting it pulls its DEDICATED+SHARED skill deps	pure role (research-software builder, added 2026-07-28); pulls software-craft+testing-discipline+refactoring (DEDICATED)
+software-craft	skill	DEDICATED	software-developer	-	software-developer:OPERATIONAL	yes	install IFF software-developer selected; selecting software-developer REQUIRES this skill	referenced by software-developer (description + body, loaded by default)
+testing-discipline	skill	DEDICATED	software-developer	-	software-developer:OPERATIONAL	yes	install IFF software-developer selected; selecting software-developer REQUIRES this skill	referenced by software-developer (backtick, loaded for check authoring)
+refactoring	skill	DEDICATED	software-developer	-	software-developer:OPERATIONAL	yes	install IFF software-developer selected; selecting software-developer REQUIRES this skill	referenced by software-developer (backtick, loaded on structural changes)
+refusal-recovery	skill	STANDALONE	-	-	-	yes	installable alone; imposes NO agent requirement	user/main-agent invoked on any refusal/safety-flag (SEED-10 carrier; DISC-20 ban); added 2026-07-28
+countermeasure-audit	skill	STANDALONE	-	-	-	yes	installable alone; imposes NO agent requirement	the efficacy-measurement owner (runs lib/countermeasure-audit.py + grades candidates); added 2026-07-28
+figure-qa	skill	STANDALONE	-	-	-	yes	installable alone; imposes NO agent requirement	render-and-look checklist (SEED-12/DISC-05 carrier, not a gate); added 2026-07-28
+supervisory-workflow	skill	STANDALONE	-	-	-	yes	installable alone; imposes NO agent requirement	row ADDED 2026-08-02 (public-release pass): the skill dir ships in payload/skills/ but carried NO manifest row — a pre-existing gap the coupling gate cannot catch (it verifies manifest->payload, never payload->manifest). Re-derived from the record: 0 agent referrers -> STANDALONE by TIER_RULE
+
+# ============================================================
+# SECTION 2 — PER-AGENT REQUIRED-SKILL CLOSURE (what --select <agent> installs)
+# 6 pure-role agents have zero skill deps; 12 pull >=1 skill (18 agents total as of 2026-07-28).
+# ============================================================
+agent	n_skills	dedicated	shared	required_skills
+agent-tooling-engineer	2	2	0	bash-hook-contract;toolkit-extension-authoring
+code-review-debugger	4	1	3	julia-performance-correctness;mgcv-temporal-gam;temporal-block-cv;tz-safe-timestamps
+design-rationale-analyst	2	2	0	design-rationale;teaching-narrative
+dynamical-systems-modeler	1	0	1	reproduce-model-from-literature
+ecophysiology-modeler	1	0	1	reproduce-model-from-literature
+formal-argument-checker	0	0	0	-
+llm-doc-architect	0	0	0	-
+machine-doc-reviewer	1	0	1	machine-md
+machine-learning-scientist	6	4	2	calibrated-uq-for-ml;multi-source-fusion-bias-correction;research-stats-advisor;scientific-ml-fundamentals;temporal-block-cv;tree-ensembles
+micromet-reconstructor	9	5	4	aggregation-jensen-bias;brms-hierarchical-fitting;gap-fill-imputation;mgcv-temporal-gam;micromet-height-interpolation;research-stats-advisor;temporal-block-cv;temporal-qc-outlier-detection;tz-safe-timestamps
+ml-hybrid-process-modeler	4	3	1	biosphere-atmosphere-flux-exchange;ml-emulator-surrogate;physics-informed-ml;research-stats-advisor
+planner	4	3	1	delegation-planning;directing-execution;preflight-parallel;request-archetypes
+prompt-engineer	2	1	1	eliciting-llm-behavior;machine-md
+research-data-manager	0	0	0	-
+sci-file-indexer	1	1	0	sci-file-index
+science-writing-stylist	0	0	0	-
+software-developer	3	3	0	refactoring;software-craft;testing-discipline
+version-control-docs	0	0	0	-

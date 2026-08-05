@@ -1,0 +1,44 @@
+# FORMAT: machine-registry
+# DOC_ID: <project>/autonomy-gates
+# DOC_CURRENCY: CURRENT
+# AUTHORITY_CLASS: A1_CURRENT_OWNER
+# VERIFICATION_STATUS: VERIFIED (owner-ratified authority boundary)
+# TASK_STATUS: ACTIVE
+# AS_OF: <ISO-8601 + tz>
+# TOPIC_ID: autonomy-gates
+# DDC_CATEGORY: DDC-20 (STATE/advisory)
+# SUPERSEDES: -   ; SUPERSEDED_BY: -
+# (TEMPLATE: copy this file, fill <angle-bracket> stubs, set AS_OF+tz, register the owner row in the
+#   DDC-02 HEAD manifest. Keep DOC_CURRENCY=DRAFT until owner-ratified, then flip to CURRENT.)
+#
+# PURPOSE (DDC-20): names the standing autonomy mandate (what the agent may proceed on unattended),
+#   the genuine user-only gates (what it must pause for), and who holds scientific-promotion
+#   authority — so safe work continues without needless pauses AND owner-held decisions are not
+#   silently made or promoted into hard prerequisites.
+# STATE/advisory CONTRACT: exactly ONE current row per entry; supersede IN PLACE + dated retract
+#   stub (status=RETRACTED + as_of). ADVISORY = it governs the autonomy boundary, not topic content;
+#   the scope/authority boundary is OWNER-HELD (the agent may not expand it).
+# CHECKER enforces:
+#   - in-band STATUS header present + every schema field populated                         (fail on missing field)
+#   - a non-empty STANDING-MANDATE section: classes of work the agent proceeds on WITHOUT asking (fail on empty mandate)
+#   - a non-empty USER-ONLY GATES section: genuine decision points requiring owner sign-off  (fail on empty gate list)
+#   - promotion authority named with EXACTLY ONE current holder                             (fail on 0 or >1 promotion authority)
+#   - rule present: an unlisted scope interpretation is NOT a hard prerequisite until owner-reviewed (fail if absent)
+#
+# ## STANDING-MANDATE face — work the agent PROCEEDS ON unattended (proceeds_without_asking=YES)
+work_class	proceeds_without_asking	boundary_note	status	as_of
+# EXAMPLE: local reversible analysis (compute/plot/save-artifact)	YES	sandbox-local, no host mutation, no external side effect	CURRENT	2026-07-17T00:00+10:00
+<work_class the agent may do unattended>	YES	<the boundary that keeps it safe>	CURRENT	<ISO-8601 + tz>
+#
+# ## USER-ONLY GATES face — genuine decision points that REQUIRE owner sign-off (agent must pause)
+gate	why_owner_only	status	as_of
+# EXAMPLE: promoting a scoped result into project truth	scientific-promotion authority is owner-held	CURRENT	2026-07-17T00:00+10:00
+<owner-only decision point>	<why this is genuinely owner-held, not agent-decidable>	CURRENT	<ISO-8601 + tz>
+#
+# ## PROMOTION-AUTHORITY face — who converts a scoped result into project truth (EXACTLY ONE current holder)
+authority_holder	promotes_what	status	as_of
+<owner name/role>	<scoped result -> project truth: what promotion this holder is the sole authority for>	CURRENT	<ISO-8601 + tz>
+#
+# INVARIANT (advisory): an interpretation of scope NOT listed above is NOT a hard prerequisite; it
+#   remains a candidate until owner-reviewed. The agent must not silently convert an unlisted scope
+#   reading into a blocking requirement, nor silently make an owner-only decision.

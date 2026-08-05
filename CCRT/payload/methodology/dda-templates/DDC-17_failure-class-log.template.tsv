@@ -1,0 +1,37 @@
+# FORMAT: machine-ledger
+# DOC_ID: <project-or-crt>/failure-class-log
+# DOC_CURRENCY: CURRENT (STATE face) + APPEND_ONLY (HISTORY face)
+# AUTHORITY_CLASS: A1_CURRENT_OWNER
+# VERIFICATION_STATUS: N/A (a taxonomy head over dated incident evidence)
+# TASK_STATUS: ACTIVE
+# AS_OF: <ISO-8601 + tz>
+# TOPIC_ID: failure-class-log
+# DDC_CATEGORY: DDC-17 (HYBRID)
+# SUPERSEDES: -   ; SUPERSEDED_BY: -
+#
+# PURPOSE (DDC-17): the recurring failure/problem CLASSES abstracted across incidents (LLM-reasoning
+#   and human<->LLM coordination), each with an output-detectable trigger + required action — the
+#   taxonomy a blind agent reads to recognize a trap before repeating it.
+# HYBRID CONTRACT:
+#   STATE face   = the A1 current class set (head); supersede a class row IN PLACE as it is refined.
+#   HISTORY face = the underlying dated incident evidence (append-only; the classes generalize over it).
+# COUNTING_RULE (declared once; recurrence_arc_count is measured under THIS rule — no additive episode counts without it):
+#   ARC = one distinct development arc (session/thread) in which the class occurred >=1 time.
+#   recurrence_arc_count counts ARCS, not mentions and not per-episode tallies.
+# CHECKER enforces:
+#   - in-band STATUS header present on this current-class head
+#         [REQ: in-band STATUS header on the current-class head]
+#   - every class row non-empty in: class_id, trigger_observable, required_action, recurrence_arc_count
+#         [REQ: each class: id, output-detectable trigger, required deciding action, recurrence evidence (arc count, not mentions)]
+#   - every class row names direct observables AND a positive_control AND a null_control (prose-only class rejected)
+#         [REQ: each class bound to direct observables + positive/null controls (prose-only class is insufficient)]
+#   - recurrence_arc_count is an integer measured under the declared COUNTING_RULE above; no bare additive tallies
+#         [REQ: no additive episode-count claims without a stated counting rule]
+#
+# ## STATE face — current failure-class set (supersede a class row IN PLACE when refined)
+class_id	trigger_observable	required_action	observables	positive_control	null_control	recurrence_arc_count	as_of
+<fc-001>	<output-detectable signal that the trap is happening>	<the deciding action required when the trigger fires>	<direct observables that instantiate this class>	<a case that SHOULD match (fires the trigger)>	<a case that should NOT match (must stay silent)>	<int arcs, per COUNTING_RULE>	<ISO-8601 + tz>
+#
+# ## HISTORY face — append-only dated incident evidence (newest first; never edit a past line)
+# <ISO-8601 + tz>  <fc-001>  arc=<session/thread id>  incident=<what happened + evidence ptr>   by=<who>
+# <ISO-8601 + tz>  <fc-001>  arc=<...>                incident=<...>                             by=<...>

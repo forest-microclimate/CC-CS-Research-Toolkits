@@ -1,0 +1,29 @@
+# FORMAT: machine-manifest
+# DOC_ID: <project>/head-manifest
+# DOC_CURRENCY: CURRENT
+# AUTHORITY_CLASS: A1_CURRENT_OWNER
+# VERIFICATION_STATUS: VERIFIED
+# TASK_STATUS: ACTIVE
+# AS_OF: <ISO-8601 + tz>
+# TOPIC_ID: head-manifest
+# DDC_CATEGORY: DDC-02 (STATE)
+# SUPERSEDES: -   ; SUPERSEDED_BY: -
+#
+# PURPOSE (DDC-02): the machine-readable registry naming, for each topic, the ONE current owner doc
+#   + its currency + a content hash. The single input the fail-closed checker enforces; the
+#   structural keystone against stale-doc poisoning.
+# STATE CONTRACT: exactly one A1 owner row per topic_id. On owner change, supersede the row IN PLACE
+#   (do not append a second current row). This file is STATE — it holds current truth, not history.
+# CHECKER (check_current_documents.py enforces):
+#   - at most one A1 owner row per topic_id            (fail on duplicate topic owner)
+#   - every registered path/id resolves to a real file (fail on missing / dangling / symlink)
+#   - every non-self row hash matches current bytes    (fail on drift)
+#   - no unregistered CURRENT doc exists in the active set (fail on orphan current doc)
+#   - known_conflict_ids resolve in the DDC-11 ledger
+#   - self-row hash lives in an external sidecar (no self-referential hash cycle)
+#
+# One row per topic. hash = sha256 of the target's current bytes (blank for the self row -> sidecar).
+topic_id	owner_doc_id	relative_path_or_artifact_id	currency	authority_class	sha256	known_conflict_ids	as_of
+<topic>	<doc_id>	<path|version_id>	CURRENT	A1_CURRENT_OWNER	<64-hex or ->	-	<ISO-8601>
+# SELF ROW (hash bound by sidecar head-manifest.sha256, NOT inline):
+head-manifest	<this doc_id>	<this path>	CURRENT	A1_CURRENT_OWNER	(see sidecar)	-	<ISO-8601>

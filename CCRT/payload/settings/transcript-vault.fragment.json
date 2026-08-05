@@ -1,0 +1,18 @@
+{
+  "//": "transcript-vault (T-28): never-lose-a-record for AUTO-PRODUCED Claude Code files. (1) cleanupPeriodDays=99999 (~274yr) so CC's startup purge never deletes session transcripts — set high, NEVER 0 (0 silently disables transcript writing, GitHub #23710). (2) SessionStart hook transcript_archive.py mirrors the auto-produced record (projects/ transcripts+subagent logs+auto-memory, history.jsonl, todos/, file-history/, shell-snapshots/) to a vault OUTSIDE ~/.claude (default ~/.claude-vault), incrementally + never-deleting. NEVER copies secrets (.credentials*) or re-derivable customization (skills/agents/rules/hooks/lib/docs/settings/backups). Detached copy — never blocks session start. Pure-python3 stdlib (portable macOS+Linux). This SessionStart matcher:'' block coalesces with ambient-time's into one group (merge_settings coalesce_by_matcher).",
+  "cleanupPeriodDays": 99999,
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/transcript_archive.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

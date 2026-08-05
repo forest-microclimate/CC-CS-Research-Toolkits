@@ -1,0 +1,17 @@
+{
+  "//": "doc-currency-guard: read-time currency enforcement (T-16). Fresh PreToolUse event array (core+ambient-time define none) — merges cleanly, no collision. Hook = doc-currency-guard.sh: INFORM-BUT-ALLOW, injects a notice via hookSpecificOutput.additionalContext when Reading a SUPERSEDED-BY/HISTORICAL durable doc, never blocks, always exit 0. Keep the command string byte-identical across any future touch (merge dedups by command).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/doc-currency-guard.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

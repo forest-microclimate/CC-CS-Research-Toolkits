@@ -1,0 +1,3 @@
+clean_name,record_type,parent_file,bundle_folder,first_author,first_author_ascii,year,title,doi,file_name,notes
+Smith_2020_J_T,article,,Smith_2020_J_T,Smith,Smith,2020,T,10.1/a,Smith_2020_J_T.pdf,
+Smith_2020_J_T_SI,supplement,Smith_2020_J_T,Smith_2020_J_T,Smith,Smith,2020,SI,,Smith_2020_J_T_SI.pdf,

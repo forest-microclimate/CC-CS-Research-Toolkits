@@ -1,0 +1,45 @@
+# FORMAT: machine-registry
+# DOC_ID: <project>/change-limiter-contract
+# DOC_CURRENCY: CURRENT
+# AUTHORITY_CLASS: A1_CURRENT_OWNER
+# VERIFICATION_STATUS: VERIFIED (owner-ratified classification contract)
+# TASK_STATUS: ACTIVE
+# AS_OF: <ISO-8601 + tz>
+# TOPIC_ID: change-limiter-contract
+# DDC_CATEGORY: DDC-19 (STATE)
+# SUPERSEDES: -   ; SUPERSEDED_BY: -
+# (TEMPLATE: copy this file, fill <angle-bracket> stubs, set AS_OF+tz, register the owner row in the
+#   DDC-02 HEAD manifest. Keep DOC_CURRENCY=DRAFT until owner-ratified, then flip to CURRENT.)
+#
+# PURPOSE (DDC-19): classify any CHANGE before editing (migration / observer / realism / performance
+#   / data / documentation) and any LIMITING MECHANISM before accepting it (symptom-suppressor /
+#   alarm / physical-constraint / numerical-stabilizer / degenerate-reduction) — so a change's
+#   required evidence and a limiter's true role are fixed BEFORE it lands.
+# STATE CONTRACT: exactly ONE current row per class. The class SET below is the ratified enumeration
+#   (do not add classes without owner sign-off); on a checklist/condition edit, supersede IN PLACE +
+#   dated retract stub (status=RETRACTED + as_of).
+# NOTE: this contract may live standalone (A1, this file) or as a required section of DDC-05/DDC-08.
+# CHECKER enforces:
+#   - in-band STATUS header present + every schema field populated                       (fail on missing field)
+#   - the change-class set is enumerated AND each class carries a required-evidence checklist  (fail on a change-class with empty checklist)
+#   - the limiter-class set is enumerated AND each class carries an admissibility condition     (fail on a limiter-class with empty condition)
+#   - classification precedes editing: a change with no assigned class is blocked        (fail-closed: unclassified change => reject the edit)
+#
+# ## CHANGE-CLASS face — one row per change class (class names are the ratified enumeration; fill each checklist)
+change_class	intent_gloss	required_evidence_checklist	status	as_of
+migration	behavior-preserving move/rename/refactor	<e.g. before/after behavior identical on named cases; no numeric drift; propagation to all callers>	CURRENT	<ISO-8601 + tz>
+observer	adds/changes measurement or logging only	<e.g. proves it does NOT alter the observed computation; read-only asserted>	CURRENT	<ISO-8601 + tz>
+realism	changes what the model/analysis physically represents	<e.g. conservation/invariant still holds; sanity range check; owner science sign-off>	CURRENT	<ISO-8601 + tz>
+performance	same result, faster/cheaper	<e.g. bit-for-bit or within-tolerance identical output vs baseline; benchmark delta>	CURRENT	<ISO-8601 + tz>
+data	changes inputs/datasets/config values	<e.g. provenance + hash of new data; schema unchanged or migrated; DDC-15 lineage row>	CURRENT	<ISO-8601 + tz>
+documentation	text/comments only, no executable change	<e.g. no code/config bytes changed; STATUS header updated>	CURRENT	<ISO-8601 + tz>
+<new-change-class (owner sign-off required)>	<intent>	<required-evidence checklist>	CURRENT	<ISO-8601 + tz>
+#
+# ## LIMITER-CLASS face — one row per limiter class (classify a limiting mechanism BEFORE accepting it)
+limiter_class	intent_gloss	admissibility_condition	status	as_of
+symptom-suppressor	hides a symptom without fixing the cause	<INADMISSIBLE as a fix; admissible only as a labeled temporary stopgap with a tracked root-cause task>	CURRENT	<ISO-8601 + tz>
+alarm	detects + reports an out-of-range condition	<admissible when it surfaces (not masks) the condition and routes to an owner/log>	CURRENT	<ISO-8601 + tz>
+physical-constraint	enforces a true conservation/bound	<admissible when the bound is physically/mathematically real, cited, not a fit-to-symptom clamp>	CURRENT	<ISO-8601 + tz>
+numerical-stabilizer	keeps a solver well-posed	<admissible when it preserves the converged answer within tolerance; must not change the physical result>	CURRENT	<ISO-8601 + tz>
+degenerate-reduction	collapses a case to a simpler valid regime	<admissible when the reduced regime is a genuine special case, entry condition explicit>	CURRENT	<ISO-8601 + tz>
+<new-limiter-class (owner sign-off required)>	<intent>	<admissibility condition>	CURRENT	<ISO-8601 + tz>

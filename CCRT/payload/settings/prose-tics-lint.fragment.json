@@ -1,0 +1,17 @@
+{
+  "//": "STATUS: CURRENT (2026-07-28). prose-tics-lint: ADVISORY writing-science prose linter (TIER-P candidate, CC-only). EVENT/MATCHER: PostToolUse on the write-path tools (Write|Edit|MultiEdit). After a manuscript-class prose file (*.md / *.markdown / *.rst) is written to disk, hooks/prose-tics-lint.sh runs skills/writing-science/writing_detectors.py (`scan --json`) over it and SURFACES a short candidate-tell summary (count + top 3 tic classes) on STDERR. EXIT SEMANTICS: ALWAYS exit 0 - it is a NUDGE, never a gate (never exit 2, never blocks); FAIL-OPEN-BUT-SILENT on any error (no python3, detector missing/crash, malformed JSON, unreadable/oversized file, subprocess timeout). SCOPE: skips code, config/JSON/TSV, *.machine.md + .claude/ machine docs, CLAUDE.md, and scratch trees (sandbox/, backups/, scratch/, node_modules/, .git/). HONEST BOUNDARY: covers only file-written prose - no CC event fires on chat-only drafts, so silence is not proof the prose is clean. Consumes only the detector's {counts,profile,hits} JSON contract, not its internals. Honors the CRT master switch: both 'off' and 'observe' silence it (intervention hook). Keep the command string byte-identical across any future touch (merge_settings dedups hooks by command).",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/prose-tics-lint.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

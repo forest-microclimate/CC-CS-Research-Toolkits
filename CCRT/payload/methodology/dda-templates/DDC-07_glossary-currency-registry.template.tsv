@@ -1,0 +1,34 @@
+# FORMAT: machine-registry
+# DOC_ID: <project>/glossary-currency
+# DOC_CURRENCY: CURRENT
+# AUTHORITY_CLASS: A1_CURRENT_OWNER
+# VERIFICATION_STATUS: VERIFIED (owner-ratified vocabulary + comparison currency)
+# TASK_STATUS: ACTIVE
+# AS_OF: <ISO-8601 + tz>
+# TOPIC_ID: glossary-currency
+# DDC_CATEGORY: DDC-07 (STATE)
+# SUPERSEDES: -   ; SUPERSEDED_BY: -
+# (TEMPLATE: copy this file, fill <angle-bracket> stubs, set AS_OF+tz, register the owner row in the
+#   DDC-02 HEAD manifest. Keep DOC_CURRENCY=DRAFT until owner-ratified, then flip to CURRENT.)
+#
+# PURPOSE (DDC-07): pins the identity of overloaded terms AND every comparison currency — units,
+#   coordinate systems, area/normalization basis, timezone, population, control volume, index
+#   conventions — so two individually-plausible quantities are never compared as if they were the
+#   same object. Referenced by every doc that compares or joins quantities.
+# STATE CONTRACT: exactly ONE current definition per term and ONE current currency-row per quantity.
+#   On change, supersede the row IN PLACE + leave a dated retract stub (status=RETRACTED + as_of).
+# CHECKER enforces:
+#   - in-band STATUS header present + every schema field populated                          (fail on missing field)
+#   - each overloaded term has EXACTLY ONE current definition + a transform to each sibling  (fail on 0 or >1 current def; fail on missing sibling transform)
+#   - each comparable quantity declares unit + area/normalization_basis + coordinate_keys    (fail on any of the three empty)
+#   - a comparison/join can assert declared-currency presence on both operands               (fail if a joined quantity has no currency row here)
+#
+# ## GLOSSARY face — one row per overloaded term (sibling_term/transform blank only if the term has no sibling)
+term	current_definition	sibling_term	transform_to_sibling	status	as_of
+# EXAMPLE: quantity_X (geometric)	the cheap geometric estimate of X	quantity_X (solver)	index map: geometric == solver only in a special-case regime; else they differ	CURRENT	2026-07-17T00:00+10:00
+<term>	<the ONE current definition>	<sibling term or ->	<exact transform/index-map to the sibling or ->	CURRENT	<ISO-8601 + tz>
+#
+# ## CURRENCY / UNITS REGISTRY face — one row per comparable quantity (all currency keys required before any join)
+quantity	unit	area_normalization_basis	coordinate_keys	other_currency	status	as_of
+# EXAMPLE: GPP	umol CO2 m-2 s-1	per-ground-area (NOT per-leaf-area)	site=K67; z=canopy-top	tz=UTC-4 (local); half-hour mean	CURRENT	2026-07-17T00:00+10:00
+<quantity>	<unit>	<area / normalization basis>	<coordinate keys: site/level/grid>	<timezone / population / control-volume / index convention>	CURRENT	<ISO-8601 + tz>

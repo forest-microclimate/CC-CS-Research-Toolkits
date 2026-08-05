@@ -1,0 +1,48 @@
+# FORMAT: machine-ledger
+# DOC_ID: <project-or-crt>/decision-ledger
+# DOC_CURRENCY: CURRENT (STATE face) + APPEND_ONLY (HISTORY face)
+# AUTHORITY_CLASS: A1_CURRENT_OWNER
+# VERIFICATION_STATUS: N/A (this IS the decision/adjudication record)
+# TASK_STATUS: ACTIVE
+# AS_OF: <ISO-8601 + tz>
+# TOPIC_ID: decision-ledger
+# DDC_CATEGORY: DDC-11 (HYBRID)
+# SUPERSEDES: -   ; SUPERSEDED_BY: -
+#   (in-band STATUS header above; TSV-preamble exception. If preferred, bind these bytes with a
+#    hash-bound companion sidecar decision-ledger.sha256 instead.)
+#
+# PURPOSE (DDC-11): 'chose X over Y, why, when, on what deciding evidence' + resolutions of
+#   contradictions between sources. Keeps selection-vs-architecture honest and records conflicting
+#   claims rather than silently merging them.
+# HYBRID CONTRACT:
+#   STATE face   = current decision_state / resolution_status per row; supersede a row IN PLACE on transition.
+#   HISTORY face = append-only dated adjudication trail (never edit a past line).
+# DECISION_STATE vocab (single atomic token — separates EXISTENCE from ADOPTION from EFFICACY; NO concatenated qualifiers):
+#   PROPOSED (exists, not adopted) -> ADOPTED (adopted, efficacy untested) -> EFFECTIVE (adopted + measured-effective, see DDC-14)
+#   terminal: SUPERSEDED | REVERSED
+# RESOLUTION_STATUS vocab (contradictions): RESOLVED | UNRESOLVED   (an unresolved conflict STAYS UNRESOLVED; verdict='-')
+# CHECKER enforces:
+#   - in-band STATUS header present (or hash-bound companion sidecar)
+#         [REQ: in-band STATUS header (or hash-bound companion for TSV)]
+#   - every DECISIONS row non-empty in: choice, alternatives, evidence, evidence_date, decision_state, confidence
+#         [REQ: each decision row: choice, alternatives, evidence, evidence-date, decision-state, confidence]
+#   - every CONTRADICTIONS row non-empty in: claim_a, claim_b_or_live_evidence, verdict, winning_owner, resolution_status
+#         [REQ: each contradiction row: claim-A, claim-B/live-evidence, verdict, winning-owner, resolution-status]
+#   - decision_state is ONE token from the vocab above; concatenated qualifiers rejected
+#         [REQ: decision-state vocabulary separates existence from adoption from efficacy (no concatenated qualifiers)]
+#   - NO_SILENT_MERGE: a contradiction verdict names the winner (claim_a OR claim_b, verbatim) OR resolution_status=UNRESOLVED;
+#     a third synthesized claim not equal to A or B is prohibited
+#         [REQ: NO_SILENT_MERGE enforced: a third synthesized claim is prohibited; record both + adjudicate or retain UNRESOLVED]
+#   - each conflict_id here is the resolvable target of DDC-02's known_conflict_ids
+#
+# ## STATE face — DECISIONS (supersede a row IN PLACE when decision_state transitions)
+decision_id	choice	alternatives	evidence	evidence_date	decision_state	confidence	winning_owner	as_of
+<dec-001>	<X chosen>	<Y; Z rejected>	<deciding evidence: run/test/artifact id>	<ISO-8601>	ADOPTED	<high|med|low>	<owner doc_id>	<ISO-8601 + tz>
+#
+# ## STATE face — CONTRADICTIONS (record BOTH claims; adjudicate or retain UNRESOLVED — never merge)
+conflict_id	claim_a	claim_b_or_live_evidence	verdict	winning_owner	resolution_status	as_of
+<conf-001>	<claim A + its source id>	<claim B or the live deciding evidence>	<winner = A or B, verbatim; '-' if unresolved>	<owner doc_id or ->	UNRESOLVED	<ISO-8601 + tz>
+#
+# ## HISTORY face — append-only dated adjudication trail (newest first; never edit a past line)
+# <ISO-8601 + tz>  <dec-001>  decision_state: PROPOSED -> ADOPTED   evidence=<ptr>   by=<who>
+# <ISO-8601 + tz>  <conf-001> resolution_status: UNRESOLVED -> RESOLVED  verdict=<A|B>  evidence=<ptr>  by=<who>

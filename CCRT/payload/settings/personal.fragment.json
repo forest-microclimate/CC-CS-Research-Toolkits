@@ -1,0 +1,16 @@
+{
+  "model": "claude-fable-5[1m]",
+  "env": {
+    "CLAUDE_CODE_EFFORT_LEVEL": "max",
+    "ANTHROPIC_CUSTOM_MODEL_OPTION": "claude-opus-4-8[1m]"
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "xhigh",
+  "tui": "fullscreen",
+  "theme": "dark-daltonized",
+  "skipWorkflowUsageWarning": true,
+  "agentPushNotifEnabled": true,
+  "enabledPlugins": {
+    "feature-dev@claude-code-plugins": true
+  }
+}

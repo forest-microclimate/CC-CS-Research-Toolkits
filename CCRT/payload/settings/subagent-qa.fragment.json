@@ -1,0 +1,17 @@
+{
+  "//subagent-qa": "subagent-qa: SubagentStop QA scan + error-mode TELEMETRY (O-series, 2026-08-04). Registers on SubagentStop, which MEASURED 2026-08-04 was registered: False — nothing fired when a child finished, so every child's output was judged by whatever attention the coordinator had left at collect. Hook = subagent_qa_gate.sh: (1) identifies the child (payload agent_type, else the transcript's last Task subagent_type, else 'unknown' — the row records which key answered, and an unknown identity gets the LIGHT pass only, i.e. it under-scans rather than over-blocks); (2) scans the child's final message — LIGHT pattern set for every child, the FULL set plus the three supervised-executor classes (scope-drift / thrash / timidity) for a pinned executor; (3) APPENDS ONE ROW PER COMPLETION to $CRT_ERROR_MODE_LOG (default ${CLAUDE_PROJECT_DIR}/dev/error_mode_log.jsonl), CLEAN COMPLETIONS INCLUDED because a rate needs a denominator; (4) emits ONE advisory nudge — {\"decision\":\"block\",\"reason\":...}, the only channel a Stop-class hook has — when a finding reaches severity 2, guarded by stop_hook_active so it can never loop. The findings are regex CANDIDATES, not verdicts. FAIL-OPEN ALWAYS, and the log write is best-effort with errors swallowed to a <log>.err sidecar: telemetry must never break a session. CRT master switch: 'off' = fully inert (no scan, no row); 'observe' = scan and LOG but never nudge (that is the arm for measuring unaided behaviour, so telemetry keeps running); 'on' (default) = scan, log, nudge. Reader: dev/tools/error_mode_rates.py. Keep the command string byte-identical across any future touch (merge dedups by command).",
+  "hooks": {
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/subagent_qa_gate.sh\"",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}

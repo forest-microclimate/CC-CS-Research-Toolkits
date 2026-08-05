@@ -1,0 +1,78 @@
+{
+  "purpose": "verify-the-verifier fixtures for check_bundle_parity.py (VLOOP Item 4). Each entry is a defect CLASS the gate must catch; recipes regenerate the planted bundle from any clean bundle so the fixtures never go stale.",
+  "operand_pinning": {
+    "builder_embed_transform": "_read_text = open(path,'rb').read().decode('utf-8'); serialize = json.dumps(indent=2, ensure_ascii=False)",
+    "disk_operand": "sha256(open(path,'rb').read().decode('utf-8').encode('utf-8'))",
+    "bundle_operand": "sha256(json_decoded_stored_string.encode('utf-8'))",
+    "empirical_confirmation": "v2.4: 77/77 files match with ZERO normalization -> raw decoded text is the exact operand; 0 stored files contain CR"
+  },
+  "defect_classes": [
+    {
+      "id": "D1",
+      "name": "content-drift",
+      "recipe": "append text to skills[0].files['SKILL.md']",
+      "motivating_defect": "a bundled multi-file skill's engine silently lagged the live tool by several files (F5)",
+      "expected": "DRIFT line, exit 2",
+      "mode": "build"
+    },
+    {
+      "id": "D2",
+      "name": "omitted-file",
+      "recipe": "delete a non-SKILL.md file from a skill's files{} and from its manifest entry",
+      "motivating_defect": "a bundle that silently omits a file would otherwise pass, since MISSING only checks the other direction",
+      "expected": "OMITTED FROM BUNDLE line, exit 2",
+      "mode": "build"
+    },
+    {
+      "id": "D3",
+      "name": "malformed-yaml",
+      "recipe": "replace a SKILL.md with an unterminated frontmatter block",
+      "motivating_defect": "FM-05 malformed-YAML publish failure",
+      "expected": "unterminated frontmatter block, exit 2",
+      "mode": "manifest"
+    },
+    {
+      "id": "D4",
+      "name": "empty-description",
+      "recipe": "SKILL.md with 'description:' and no value, manifest REPAIRED so this is the only defect",
+      "motivating_defect": "adversarial review: 'an empty-but-valid YAML must not pass'. THIS FIXTURE CAUGHT A REAL FALSE-GREEN in the checker: str(None)=='None' is non-empty, so str(v).strip() passed a null mandatory key. Fixed by an explicit None test.",
+      "expected": "mandatory key 'description' missing or empty (value=None), exit 2",
+      "mode": "manifest"
+    },
+    {
+      "id": "D5",
+      "name": "manifest-mismatch",
+      "recipe": "overwrite one manifest sha with 64 zeros",
+      "motivating_defect": "a manifest written from different bytes than the bodies beside it",
+      "expected": "MANIFEST sha mismatch, exit 2",
+      "mode": "manifest"
+    },
+    {
+      "id": "D6",
+      "name": "name-not-equal-dir",
+      "recipe": "change frontmatter 'name:' to differ from the skill dir name; repair manifest",
+      "motivating_defect": "the claude-code-extension-authoring rename-twin class",
+      "expected": "frontmatter name != skill dir name, exit 2",
+      "mode": "manifest"
+    },
+    {
+      "id": "D7",
+      "name": "null-name",
+      "recipe": "SKILL.md with 'name:' and no value; repair manifest",
+      "motivating_defect": "symmetric null case to D4",
+      "expected": "mandatory key 'name' missing or empty (value=None), exit 2",
+      "mode": "manifest"
+    }
+  ],
+  "results_2026_07_24": {
+    "isolated_matrix": "7/7 defect classes caught, each by the check that OWNS it (D4 initially appeared caught only because a DIFFERENT check fired — a vacuous pass on my own reading; isolating each defect exposed it)",
+    "known_clean": "v2.4 build-mode exit 0, manifest-mode exit 0",
+    "discrimination": "v2.4 bundle vs v2.3 bundle_src correctly FAILS on exactly the 2 refreshed skills + 1 v2.4-added file"
+  },
+  "v24_claim_audit": {
+    "claim": "All other 46 skills + 21 profiles byte-identical to v2.3 (v2.4 build_config note)",
+    "method": "independent recomputation of per-file sha256 over both shipped bundles",
+    "verdict": "TRUE — VERIFIED: exactly 46 skills byte-identical, 21/21 profiles identical, exactly the 2 named skills differ",
+    "significance": "the claim was accurate but UNCHECKED — v2.4 shipped on an assertion that happened to hold. From v2.5 it is mechanically enforced."
+  }
+}

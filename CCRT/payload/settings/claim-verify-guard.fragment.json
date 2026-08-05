@@ -1,0 +1,17 @@
+{
+  "//": "claim-verify-guard: WRITE-TIME claim-vs-record enforcement (VLOOP Item 1, CCRT half). Registers on PreToolUse for the write-path tools, so a durable payload carrying a ```vloop-claims``` block is recomputed against its named sources BEFORE the write lands. Hook = claim-verify-guard.sh: BLOCKS (exit 2) on any claim/record mismatch, on a malformed claim block, and on a vacuous 0-claim block against a substantial payload; PASSES (exit 0) when no claim block is present or every claim verifies; FAIL-OPEN-BUT-LOGGED on an internal error (a gate must not block on its own bug). stdout stays empty by contract — the reason rides on stderr. Honors the CRT master switch: both 'off' and 'observe' silence it, since it is an intervention hook. Keep the command string byte-identical across any future touch (merge dedups by command).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/claim-verify-guard.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "bundle_name": "claude-research-toolkit — Claude Science customization layer",
+  "bundle_version": "2.11",
+  "created_utc": "2026-07-29T02:00:00Z",
+  "source_project": "claude-research-toolkit (proj_0914d6b9a4b2)",
+  "note": "Self-installing bundle. Replay via install_crt_science.py in a Claude Science `repl` cell. Contents are 52 skills / 18 profiles (v2.11 J-series adaptation adds supervisory-workflow + count-enumeration-contagion, back-ports the P2-era detector upgrades to the writing-science kernel, and updates 4 profiles) (v2.10 = the verification-integrity pass: verify_before_assert in provenance-guard, require_receipt + require_verification_status in verification-loop, new refusal-recovery/countermeasure-audit/figure-qa skills, proof-of-reach reviewer seed, handoff pointer-verification; v2.9 added SOFTWARE_DEVELOPER + its three skills). Built fail-closed and gated on check_bundle_parity (build + manifest + install + frontmatter); the built JSON is regenerated from bundle_src, never hand-edited. v2.8 = the planner-upgrade pass: the PLANNER profile gains the supervisory-loop charter, model routing (tier table + claude-opus-5 ban), the code-not-LLM instrument test, and dispatch & supervision discipline; delegation-planning gains the A2 routing schema + kernel gates (model_route_gate / plan_lint / route_receipt_audit); directing-execution gains the two-receipts stop gate (confirm_before_stop kernel); preflight-parallel gains detached-dispatch + compute-host + cgroup-honesty defaults. 2026-07-28 defect-fix rebuild (same version): all four sidecar kernels refactored to the registry's sidecar-publish module-top-level contract + verification-loop description trimmed to 959 chars (BUG-0001/BUG-0002). PRE-BUILD GATE: run `python3 check_sidecar_contract.py` (must exit 0) before any build — it enforces the sidecar contract + the 1024-char description limit the live registry enforces at publish time.",
+  "dropped": {
+    "skills": [
+      {
+        "name": "claude-code-extension-authoring",
+        "superseded_by": "toolkit-extension-authoring",
+        "reason": "REDUNDANCY (the only valid exclusion ground): pre-rename duplicate of toolkit-extension-authoring, not a distinct capability. Verified 2026-07-24 by recomputation from live bytes: SKILL.md bodies are identical modulo the name string itself (8-byte delta = the 4-char-longer name appearing twice), and the description frontmatter field is word-for-word identical. Two live skills with identical descriptions is a routing hazard, since skill selection reads descriptions. toolkit-extension-authoring is canonical."
+      }
+    ],
+    "profiles": [],
+    "note": "v2.5 corrects the v1.0-v2.4 exclusion rationales. km67-canonical-methods is RESTORED (its 'project-local / fails out-of-corpus transfer' drop was never a valid ground). Platform applicability is NOT a bundle concept: Science-only features ship in CSRTB in full and are simply not cross-ported to CCRT."
+  }
+}

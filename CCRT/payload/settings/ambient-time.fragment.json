@@ -1,0 +1,29 @@
+{
+  "//": "ambient-time: inject one down-weighted local-time+elapsed line each prompt. Toolkit-native form (\\$HOME/.claude/hooks). Merges by matcher into core's UserPromptSubmit group; SessionStart is a new event array. Hook = ambient_time.py (python3, pure stdlib).",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/ambient_time.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/ambient_time.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

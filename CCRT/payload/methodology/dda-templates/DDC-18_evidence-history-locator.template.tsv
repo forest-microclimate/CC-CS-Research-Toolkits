@@ -1,0 +1,47 @@
+# FORMAT: machine-locator
+# DOC_ID: <project>/evidence-locator
+# DOC_CURRENCY: APPEND_ONLY
+# AUTHORITY_CLASS: A0_VERIFIED_LIVE
+# VERIFICATION_STATUS: VERIFIED
+# TASK_STATUS: ACTIVE
+# AS_OF: <ISO-8601 + tz>          # for HISTORY, AS_OF = "complete through" date, NOT "correct now"
+# TOPIC_ID: evidence-locator
+# DDC_CATEGORY: DDC-18 (HISTORY)
+# SUPERSEDES: -   ; SUPERSEDED_BY: -
+#
+# PURPOSE (DDC-18): the locator that names WHERE dated history, superseded versions, and heavy
+#   verification proofs live -- reachable on demand, NEVER auto-loaded as current authority. The
+#   structural complement that keeps HISTORY out of STATE context without losing it.
+# HISTORY CONTRACT (append-only): rows are newest-first; a row is never rewritten or deleted. Each row
+#   is dated (as_of) + provenance-tagged (binding_hash). A moved / re-hashed target is a NEW row; the
+#   prior row is retained. Currency of this doc = "complete through <AS_OF>".
+# AUTHORITY (brief: A0/H1 locator): the LOCATOR is A0_VERIFIED_LIVE -- the checker resolves every
+#   pointer and matches its binding_hash. The ROUTED EVIDENCE is A3_HISTORICAL provenance-only
+#   (per-row authority=PROVENANCE_ONLY): never current model authority. This A0-doc / A3-content split
+#   is deliberate (authority is orthogonal to currency). VERIFICATION_STATUS=VERIFIED means "pointers
+#   resolve + hashes match", NOT "the routed evidence is current truth".
+# STATUS-HEADER in TSV: carried in this comment PREAMBLE (house TSV-preamble exception, brief DDC-02);
+#   file integrity is bound by an EXTERNAL hash sidecar companion (evidence-locator.sha256) -- no
+#   self-referential inline hash.
+#
+# evidence_kind vocabulary (closed): DATED_HISTORY | SUPERSEDED_VERSION | VERIFICATION_PROOF | ARCHIVE | RUN_LOG | RAW_SOURCE_TREE
+# location_kind vocabulary (closed): ARTIFACT_VERSION_ID | ABS_PATH | URL | ARCHIVE_MEMBER | FRAME_ID
+# authority (fixed value): PROVENANCE_ONLY        auto_load (fixed value): NO
+#
+# CHECKER enforces:
+#   - STATUS header present in the preamble; DOC_CURRENCY=APPEND_ONLY; DDC_CATEGORY=DDC-18 (HISTORY)                 [REQ: in-band STATUS header, via TSV-preamble exception (brief DDC-02)]
+#   - every row's location resolves to a real external/archived object of its declared location_kind;
+#     fail on missing / dangling / unresolvable                                                                    [REQ: each pointer resolves to a real external/archived location]
+#   - every row's binding_hash is 64-hex AND matches the current bytes of the pointed-to object; fail on
+#     a missing or drifted hash                                                                                     [REQ: ... + binding hash]
+#   - every row's authority == PROVENANCE_ONLY; fail on any row claiming current/model authority                    [REQ: routed evidence is provenance-only, never current authority]
+#   - every row's auto_load == NO; AND no listed location also appears as a CURRENT owner in the DDC-02
+#     HEAD manifest (evidence not copied into the active set); fail otherwise                                        [REQ: no historical/source tree copied into the active/current set by default]
+#   - evidence_kind and location_kind drawn from their closed vocabularies; fail on out-of-vocab                    [REQ: pointer must resolve -- resolver dispatches on location_kind; PURPOSE enumerates evidence kinds]
+#   - rows dated (as_of, ISO-8601), newest-first; append-only -- no row edited/removed across versions; a
+#     moved target is a NEW row                                                                                     [REQ: HISTORY class contract -- append-only, newest-first, dated + provenance-tagged]
+#   - file hash matches its sidecar companion (evidence-locator.sha256); no inline self-hash                        [house TSV convention (brief DDC-02 TSV-preamble exception) -- binds req: in-band STATUS header integrity in TSV form]
+#
+# One row per pointer. Prepend NEW rows below the column header (newest-first). Copy the stub; fill <...>.
+pointer_id	evidence_kind	describes_topic_or_doc	location_kind	location	binding_hash	authority	auto_load	as_of	notes
+<ptr-NNNN>	<DATED_HISTORY|SUPERSEDED_VERSION|VERIFICATION_PROOF|ARCHIVE|RUN_LOG|RAW_SOURCE_TREE>	<topic_id or doc_id this evidence pertains to>	<ARTIFACT_VERSION_ID|ABS_PATH|URL|ARCHIVE_MEMBER|FRAME_ID>	<version_id | /abs/path | https://... | archive#member | frame_id>	<64-hex sha256 of the pointed-to bytes>	PROVENANCE_ONLY	NO	<ISO-8601 + tz>	<optional free text>

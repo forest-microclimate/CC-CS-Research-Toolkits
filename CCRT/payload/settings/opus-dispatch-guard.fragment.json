@@ -1,0 +1,17 @@
+{
+  "//opus-dispatch-guard": "opus-dispatch-guard: DISPATCH-TIME alias ban (O-series, 2026-08-04). Registers on PreToolUse with matcher Task, so every subagent LAUNCH is checked before it runs. WHY: the model ban previously held at BUILD time (lib/verify_models.sh — a barred id cannot ship in the payload) and PLAN time (plan-routing-gate.sh — a plan cannot declare one), and MEASURED 2026-08-04 a live Task(model:\"opus\") call fired NOTHING; this fragment closes that dispatch-path hole and nothing else. Hook = opus-dispatch-guard.sh: DENIES via stdout hookSpecificOutput.permissionDecision=deny (NOT exit 2 — the model needs the structured reason to relaunch correctly) when tool_input.model is the bare alias `opus` or `opusplan`, alone or context-suffixed (`opus[1m]`); PASSES with EMPTY stdout on sonnet / haiku / a full id / an absent model key / a non-Task tool. A FULL id is deliberately NOT denied here: the Task model param takes ALIASES ONLY (measured), and the sanctioned supervised route names an AGENT (subagent_type opus5-executor, whose project-scoped frontmatter carries the pin), never a model. FAIL-OPEN-BUT-LOGGED on any internal error (no python3, unparseable stdin, unexpected shape) — a guard must not wedge a launch on its own bug. Honors the CRT master switch: both 'off' and 'observe' silence it, since it is an intervention hook; the build-time and plan-time halves of the ban are unaffected by that switch. Keep the command string byte-identical across any future touch (merge dedups by command).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/opus-dispatch-guard.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

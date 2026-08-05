@@ -1,0 +1,29 @@
+{
+  "//": "Advisory workflow backstops. brief_gate.sh (PreToolUse/Task) names any unfilled brief slot before a launch and never denies; collect_outcome_gate.sh (Stop) asks once for the COLLECT outcome when a turn that collected subagent results names none. Both fail open on any internal error. Set PLANNER_KIT_HOOKS=off to silence them. Keep each command string byte-identical across edits — the merge dedups by command.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/brief_gate.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/collect_outcome_gate.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+# FORMAT: machine-ledger
+# DOC_ID: <project>/verification-ledger
+# DOC_CURRENCY: CURRENT (STATE face) + APPEND_ONLY (HISTORY face)
+# AUTHORITY_CLASS: A1_CURRENT_OWNER
+# VERIFICATION_STATUS: N/A (this IS the verification record)
+# TASK_STATUS: ACTIVE
+# AS_OF: <ISO-8601 + tz>
+# TOPIC_ID: verification-status
+# DDC_CATEGORY: DDC-14 (HYBRID)
+#
+# PURPOSE (DDC-14): the typed test/verification status of every claim/feature. Replaces a single
+#   linear "done-ness" scale with FOUR ORTHOGONAL dimensions (ratified D4) so "written" can never be
+#   silently read as "effective".
+# D4 STATUS LATTICE — NO cross-inference between dimensions; DEFAULT ATTEMPTED_UNTESTED for any new claim:
+#   implementation : proposed -> designed -> written -> included -> wired
+#   execution      : selected -> active -> fired
+#   validation     : tested -> measured-effective
+#   governance     : owner-approved-for-promotion
+#   RULE: "written" != "active" != "effective" != "approved". A claim advances one axis at a time,
+#         each advance evidenced. Never infer execution/validation from implementation.
+# CHECKER enforces:
+#   - every row carries all four dimension values (fail on a missing axis)
+#   - no row asserts validation=measured-effective without an evidence pointer (fail-closed)
+#   - default of a newly-added row is implementation=written or lower, others at floor
+#   - governance=owner-approved-for-promotion requires a DDC-11 decision id
+#   - claims marked effective cross-link the DDC-15 provenance of the evidence
+#
+# ## STATE face — current status per claim (supersede a row in place when a dimension advances)
+claim_id	feature	implementation	execution	validation	governance	evidence_ptr	as_of
+<id>	<what>	written	selected	tested	-	<artifact/lineage/run id>	<ISO>
+#
+# ## HISTORY face — append-only advance log (never edit past rows; newest first)
+# <ISO>  <claim_id>  <axis>: <old> -> <new>  evidence=<ptr>  by=<who>

@@ -1,0 +1,33 @@
+# FORMAT: machine-registry
+# DOC_ID: <project>/dev-working-rules
+# DOC_CURRENCY: CURRENT
+# AUTHORITY_CLASS: A1_CURRENT_OWNER
+# VERIFICATION_STATUS: N/A (guidance doc; verification unit = per-rule compliance_output, not the doc)
+# TASK_STATUS: ACTIVE
+# AS_OF: <ISO-8601 + tz>
+# TOPIC_ID: dev-working-rules
+# DDC_CATEGORY: DDC-05 (STATE)
+# SUPERSEDES: -   ; SUPERSEDED_BY: -
+# (TEMPLATE: copy this file, fill <angle-bracket> stubs, set AS_OF+tz, register the owner row in the
+#   DDC-02 HEAD manifest. Keep DOC_CURRENCY=DRAFT until owner-ratified, then flip to CURRENT.)
+#
+# PURPOSE (DDC-05): the project's always-on, LLM-facing epistemic constitution — the broad
+#   development & reasoning working-rules (verify-before-assume, realism/sanity checks, evidence
+#   discipline, trace-before-causal-story, root-before-symptom, refactor-propagation,
+#   creation!=efficacy) rendered as an agent-readable registry. General working guidance, NOT a
+#   topic-content authority.
+# STATE CONTRACT: exactly ONE current row per rule_id. On change, supersede the row IN PLACE and
+#   leave a dated retract stub (status=RETRACTED + as_of); never accumulate parallel current rules.
+# CHECKER enforces:
+#   - in-band STATUS header present + every schema field populated              (fail on missing field)
+#   - every rule has a non-empty output-detectable trigger AND required_action  (fail on a rule recitable-but-not-executable)
+#   - every rule names the OUTPUT that proves compliance (compliance_output)    (fail on an unprovable rule)
+#   - every rule carries BOTH mechanism AND scope                              (fail on either empty — a scopeless rule over-classifies future ops)
+#   - at most one status=CURRENT row per rule_id  [STATE contract]             (fail on duplicate/accumulated current rule)
+#
+# One row per rule. status ∈ {CURRENT, RETRACTED}. trigger MUST be observable in-the-moment
+#   (a word about to be typed, a tool about to be called, a number not in hand).
+rule_id	trigger	required_action	compliance_output	mechanism	scope	status	as_of
+# EXAMPLE (reference row showing the required rigor — delete or keep):
+# verify-before-assume	about to state a data value / current-state fact not read this session	read it from the deciding object (code/data/run) + cite; else tag (unverified)	a citation to the source object, OR an explicit (unverified) tag on the claim	assumption silently substitutes for reading the live object	data values + current-state facts; NOT general reasoning/plans	CURRENT	2026-07-17T00:00+10:00
+<rule_id>	<output-detectable trigger>	<required action bound to the trigger>	<what output proves compliance>	<failure mechanism the rule guards>	<where it applies / where it does NOT>	CURRENT	<ISO-8601 + tz>

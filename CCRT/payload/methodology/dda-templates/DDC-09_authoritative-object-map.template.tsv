@@ -1,0 +1,38 @@
+# FORMAT: machine-registry
+# DOC_ID: <project>/authoritative-object-map
+# DOC_CURRENCY: CURRENT
+# AUTHORITY_CLASS: A2_SECONDARY
+# VERIFICATION_STATUS: PARTIALLY_VERIFIED (each row's transform should carry evidence; map itself is owner-stated)
+# TASK_STATUS: ACTIVE
+# AS_OF: <ISO-8601 + tz>
+# TOPIC_ID: authoritative-object-map
+# DDC_CATEGORY: DDC-09 (STATE)
+# SUPERSEDES: -   ; SUPERSEDED_BY: -
+# SOURCE_HASH: <sha256 of the source object these proxies read from>   # REQUIRED when AUTHORITY_CLASS=A2_SECONDARY (scoped reference)
+# SCOPE_AUTHORITY: <the ONE relation this map is authoritative for, e.g. recorder<->solver provenance>
+# NOT_AUTHORITY_FOR: <what this doc must NOT be read as authority for>
+# (TEMPLATE: copy this file, fill <angle-bracket> stubs, set AS_OF+tz, register the owner row in the
+#   DDC-02 HEAD manifest. Keep DOC_CURRENCY=DRAFT until owner-ratified, then flip to CURRENT.)
+#
+# PURPOSE (DDC-09): for each reported quantity, names WHICH object is authoritative (the
+#   computed/measured thing) and maps every convenient proxy (recorder, export column, summary
+#   stat, derived field) back to it — so a proxy is never assigned the authoritative object's
+#   semantics.
+# STATE CONTRACT: exactly ONE current authoritative_object per quantity. On change, supersede the
+#   row IN PLACE + leave a dated retract stub (status=RETRACTED + as_of).
+# NOTE: if this map is the project-wide A1 owner (not a scoped reference), set
+#   AUTHORITY_CLASS=A1_CURRENT_OWNER; the SOURCE_HASH/SCOPE_AUTHORITY/NOT_AUTHORITY_FOR extension
+#   above is required only for a scoped A2 reference.
+# CHECKER enforces:
+#   - in-band STATUS header present; if AUTHORITY_CLASS=A2_SECONDARY, SOURCE_HASH + SCOPE_AUTHORITY + NOT_AUTHORITY_FOR also present   (fail on missing field)
+#   - each authoritative quantity lists its known proxies + the exact transform/relation to each   (fail on a proxy with no transform)
+#   - each proxy row states what it does NOT hold                                                  (fail on empty does_NOT_hold for a proxy)
+#   - reconstruction impossibility named explicitly (a proxy that cannot rebuild the object says so) (fail on empty reconstruction_from_proxy)
+#   - at most one authoritative_object per quantity  [STATE contract]                              (fail on conflicting current owners)
+#
+# One row per (quantity, surface). The authoritative object gets its own row (proxy_surface = itself).
+# reconstruction_from_proxy ∈ { YES via <transform> | PARTIAL — <what is lost> | NO — <why impossible> | N/A (this IS the object) }
+quantity	authoritative_object	proxy_surface	transform_relation	does_NOT_hold	reconstruction_from_proxy	status	as_of
+# EXAMPLE (authoritative row): quantity_X	the model's internal solver state for X	(authoritative object itself)	-	-	N/A (this IS the object)	CURRENT	2026-07-17T00:00+10:00
+# EXAMPLE (proxy row):        quantity_X	the model's internal solver state for X	exported summary column for X	cheap approximation; equals the solver only under a special-case regime	the export holds the approximation, NOT the solver state	NO — the summary export cannot rebuild the solver state	CURRENT	2026-07-17T00:00+10:00
+<quantity>	<the authoritative computed/measured object>	<proxy surface: recorder/column/summary/derived>	<exact transform or relation to the authoritative object>	<what this proxy does NOT hold>	<YES via <transform> | PARTIAL — <lost> | NO — <why>>	CURRENT	<ISO-8601 + tz>

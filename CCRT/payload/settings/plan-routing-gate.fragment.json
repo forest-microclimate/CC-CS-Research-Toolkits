@@ -1,0 +1,17 @@
+{
+  "//": "plan-routing-gate: PLAN-TIME routing-block enforcement (A2_ROUTING_SCHEMA lint L1-L4, CC half). Registers on PreToolUse with matcher ExitPlanMode, so a plan about to be presented for approval is linted BEFORE the user sees it. PROBE-VERIFIED on Claude Code 2.1.220 (2026-07-27): PreToolUse DOES fire for ExitPlanMode in an interactive session, and tool_input carries both `plan` (full text) and `planFilePath` — both injected by normalizeToolInput from disk, so when no plan is on disk tool_input is {} and the hook fails open. NOTE headless `-p` disables ExitPlanMode entirely ('exists but is not enabled in this context'), so this hook can only be exercised interactively or via synthetic stdin (see tests/test_plan_routing_gate.sh). Hook = plan-routing-gate.sh: DENIES via stdout hookSpecificOutput.permissionDecision=deny (NOT exit 2 — the model needs the structured reason to repair the plan and retry) on a missing/malformed routing block (L1), a track with no valid executor (L2), delegation theater i.e. delegate:main-agent/self (L3), and — at L4, TWO checks as of 2026-08-04 (A2 v1.1, opus-5 as constrained supervised use) — (i) L4 TIER-BAN: an unknown model_tier token, or a banned claude-opus-5 / bare `opus` / `opus[1m]` / `opusplan` in a MODEL-TYPE field (model|model_tier|tier|model_id), or a routing block that fails to parse; the block-wide bare-SUBSTRING backstop was retired so a plan MAY name the model in a prose field (executor/owner/task/tradeoff, e.g. 'delegate:opus5-executor (claude-opus-5, watched)') without the gate reading its own documentation as a violation; and (ii) L4 SUPERVISION: a track whose executor is `delegate:opus5-executor` or whose model_tier is `T1_supervised` but which declares no `supervised: true` / non-empty `supervision:` marker — claude-opus-5 is sanctioned ONLY as a supervised child, so an unsupervised supervised-executor track is exactly the defect this check exists for. PASSES with EMPTY stdout otherwise. Skips subagents via the measured agent_id/agent_type payload keys. FAIL-OPEN-BUT-LOGGED on any internal error (a gate must not wedge a plan on its own bug). Honors the CRT master switch: both 'off' and 'observe' silence it, since it is an intervention hook. Keep the command string byte-identical across any future touch (merge dedups by command).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/plan-routing-gate.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
