@@ -37,7 +37,7 @@ current directory is the target.
 
 The installer has two modes, and the default is the minimal one. In minimal mode it installs
 two files at your project root, the rules file (`CLAUDE.md`) and the folder contract
-(`STRUCTURE_RULES.machine.md`), plus the two advisory hooks described further down and the
+(`STRUCTURE_RULES.md`), plus the two advisory hooks described further down and the
 model-routing set, two executor agents and a model-verification skill under `.claude/`, and it
 creates no folders; the project's tree grows on demand afterward, as tasks call for it. In
 full mode, which you request with `--full`, it also builds
@@ -90,7 +90,7 @@ the root, rather than inside the `.claude` folder, because external code-review 
 continuous-integration runners look at a repository's root, and a short pointer stub is left at
 `.claude/CLAUDE.md` so a reader who looks there is sent to the root file.
 
-The second file, `STRUCTURE_RULES.machine.md`, is the folder contract, and its reader is the
+The second file, `STRUCTURE_RULES.md`, is the folder contract, and its reader is the
 coordinating agent rather than you. It lists every folder the project may grow, and for each
 one it gives the folder's purpose, the trigger that calls it into being, the rule that governs
 it once it exists, and the mechanical steps to create it. You rarely need to read it yourself.
@@ -202,7 +202,7 @@ one moved there only after a tombstone was written into it, and none of them eve
 current again.
 
 You do not have to hold any of this in memory. The folder contract,
-`STRUCTURE_RULES.machine.md`, is the authoritative description of every folder and the rule
+`STRUCTURE_RULES.md`, is the authoritative description of every folder and the rule
 that governs it, and the rules file, `CLAUDE.md`, carries the disciplines those rules refer to.
 Between them, the two files the installer put at your root are enough to teach any fresh agent,
 and you, how the project is meant to work. Adoption is just those three moves: preview the

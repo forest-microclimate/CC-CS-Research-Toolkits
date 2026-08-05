@@ -1,12 +1,13 @@
-# STRUCTURE_RULES.machine.md — the lazy-materialized project-structure standard (machine-only; primary reader = the coordinating agent)
-# STATUS: CURRENT (2026-08-03). AUTHORITATIVE per-folder contract: PURPOSE + WHEN⇒CREATE trigger + attached RULE + on-demand materialization protocol. Every relative path resolves against the project root that holds this file.
+# STRUCTURE_RULES.md — the lazy-materialized project-structure standard (machine-only; primary reader = the coordinating agent)
+# STATUS: CURRENT (2026-08-05). AUTHORITATIVE per-folder contract: PURPOSE + WHEN⇒CREATE trigger + attached RULE + on-demand materialization protocol. Every relative path resolves against the project root that holds this file.
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
+# NAME (kit v1.5, 2026-08-05): this file installs as `STRUCTURE_RULES.md`, renamed from `STRUCTURE_RULES.machine.md` on the user's explicit ask. The name DEVIATES from the house `*.machine.md` convention (doc-style: a machine-only doc carries the machine suffix); the CONTENT is unchanged and stays machine-STYLE — terse WHEN⇒DO atoms for a coordinating agent, not human prose. Only the NAME moved. An installer run over a root that still carries the old name RENAMES it in place (content preserved); a root carrying BOTH names is refused loudly rather than resolved by guess.
 
 # ─── STRUCTURE MAP (canonical tree) ───
 ```
 <project-root>/
   CLAUDE.md                    front door (ROOT; `.claude/CLAUDE.md` is a pointer stub to here)
-  STRUCTURE_RULES.machine.md   THIS doc — the per-folder contract
+  STRUCTURE_RULES.md           THIS doc — the per-folder contract
   .claude/                     settings.json / agents / skills / rules / agent-memory (settings.local.json is auto-ignored under git)
   src/                         primary / deliverable code
   projects/                    OPTIONAL: a sibling/parent project tree brought INSIDE this root for in-scope integration work; create only when such work exists

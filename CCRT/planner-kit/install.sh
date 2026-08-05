@@ -1,25 +1,34 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com>
-# planner-kit installer (v1.4) — LAZY-SCAFFOLD: minimal by default, --full for the classic tree.
+# planner-kit installer (v1.5) — LAZY-SCAFFOLD: minimal by default, --full for the classic tree.
 # Idempotent & non-destructive: a re-run changes nothing it already did; ZERO deletes, ZERO overwrites
 # (the ONE deliberate exception: --upgrade-rules rewrites the planner-kit block inside the root
 #  CLAUDE.md IN PLACE, after keeping a dated backup — everything outside the block stays byte-untouched).
+#
+# v1.5 RENAME + MIGRATION: the installed folder contract is now STRUCTURE_RULES.md (was
+#   STRUCTURE_RULES.machine.md through v1.4). Its content is unchanged and still machine-STYLE;
+#   only the NAME moved. EVERY mode (default, --full, --upgrade-rules) first MIGRATES an already-
+#   installed old-name file by RENAMING it in place (plain `mv`; content preserved byte-for-byte,
+#   the project's own copy always wins over the payload seed), then proceeds. A root carrying BOTH
+#   names is REFUSED up front, before any write — the installer cannot know which one is
+#   authoritative, so it never picks, never overwrites, and changes nothing at all. A second run
+#   after a migration is a no-op on this axis.
 #
 # Run FROM your PROJECT ROOT (not from inside the kit):
 #     cd /your/project && bash /path/to/planner-kit/install.sh [--full] [--dry-run]
 #
 # TWO MODES:
 #   DEFAULT (minimal) — install ONLY the two front-door files at the project root:
-#       (1) root CLAUDE.md  and  (2) STRUCTURE_RULES.machine.md — plus the two advisory
+#       (1) root CLAUDE.md  and  (2) STRUCTURE_RULES.md — plus the two advisory
 #       workflow hooks + their .claude/settings.json registration, and the model-routing set
 #       (two executor agents + the model-verification skill; see BOTH MODES below).
 #     The folder tree is NOT pre-created; the agent materializes each folder ON DEMAND per
-#     STRUCTURE_RULES.machine.md (a folder's absence = not yet needed, never an error). This
+#     STRUCTURE_RULES.md (a folder's absence = not yet needed, never an error). This
 #     removes the speculative clutter of pre-creating folders a given project never uses.
 #   --full — the classic layout up front: scaffold the whole standard tree (mkdir -p; idempotent)
 #     + a .gitkeep in each created dir that stays empty + seed the ledger/memory/tool templates
-#     (only-if-absent), PLUS STRUCTURE_RULES.machine.md. Same outcome as v1.1 + the structure doc.
+#     (only-if-absent), PLUS STRUCTURE_RULES.md. Same outcome as v1.1 + the structure doc.
 #
 # BOTH MODES do (mechanism unchanged from v1.1):
 #   (c) ROOT CLAUDE.md: create if absent (payload rules wrapped in planner-kit markers), else append
@@ -27,8 +36,10 @@
 #       seed .claude/CLAUDE.md as a <=2-line pointer stub to the root file, only if absent. If a
 #       planner-kit marker is found INSIDE .claude/CLAUDE.md (a v1 install put the rules there) print
 #       migration advice — never auto-move user content.
-#   Seed STRUCTURE_RULES.machine.md (only-if-absent), recording THIS kit's absolute path into its SEEDS
-#       section so an on-demand materialization can find the seed templates later.
+#   MIGRATE a pre-v1.5 STRUCTURE_RULES.machine.md at the project root to STRUCTURE_RULES.md
+#       (plain `mv`, content preserved) — then seed STRUCTURE_RULES.md (only-if-absent), recording
+#       THIS kit's absolute path into its SEEDS section so an on-demand materialization can find
+#       the seed templates later. BOTH names present => refuse up front, change nothing.
 #   Install the two advisory workflow hooks into .claude/hooks/ (mode 755) and register them in
 #       .claude/settings.json: seeded when absent, else DEEP-MERGED via lib/merge_settings.py so
 #       your own settings and any foreign hook survive intact (a dated backup is kept before the
@@ -45,7 +56,9 @@
 #   this kit's current marker-wrapped rules block, IN PLACE. A dated backup of CLAUDE.md is kept
 #   FIRST; every byte outside the span is untouched. REFUSES when no planner-kit block exists
 #   (upgrade ≠ install — run without the flag to install). Without this flag the merge stays the
-#   never-overwrite no-op it has always been.
+#   never-overwrite no-op it has always been. v1.5: the flag ALSO performs the STRUCTURE_RULES
+#   migration above (it is unconditional in every mode), so ONE --upgrade-rules run fully converges
+#   an old root — the block text and the file name move together.
 # --dry-run composes with all modes (prints actions, writes nothing). -h/--help documents all flags.
 #
 # Portability: bash 3.2+ (macOS default); no `timeout`; no GNU-only flags; no realpath / readlink -f.
@@ -55,7 +68,14 @@
 set -u
 set -o pipefail
 
-KIT_VERSION="v1.4"
+KIT_VERSION="v1.5"
+
+# The installed folder contract's file name, and the pre-v1.5 name it migrates FROM. Kept as two
+# variables so the name lives in ONE place: every seed, migration, guard, summary line and closing
+# message below reads them, so a future rename is a one-line change instead of a grep-and-hope.
+STRUCT_DOC_NAME="STRUCTURE_RULES.md"
+STRUCT_DOC_OLD="STRUCTURE_RULES.machine.md"
+STRUCT_MIGRATED=0   # 1 once the old-name file was renamed (real run) or is predicted to be (dry-run)
 
 # ---- resolve locations -----------------------------------------------------
 # KIT_DIR    = where this script + payload/ live (the SOURCE).
@@ -79,17 +99,20 @@ usage() {
   cat <<EOF
 planner-kit installer ($KIT_VERSION)
 Usage: cd /your/project && bash "$KIT_DIR/install.sh" [--full] [--upgrade-rules] [--dry-run]
-  (default)   MINIMAL install: root CLAUDE.md + STRUCTURE_RULES.machine.md, plus the two
+  (default)   MINIMAL install: root CLAUDE.md + $STRUCT_DOC_NAME, plus the two
               advisory workflow hooks + their .claude/settings.json registration, and the
               model-routing set (.claude/agents/ executors + .claude/skills/model-verification).
-              The folder tree is materialized ON DEMAND per STRUCTURE_RULES.machine.md
+              The folder tree is materialized ON DEMAND per $STRUCT_DOC_NAME
               (a folder's absence = not yet needed, never an error).
   --full      CLASSIC install: pre-scaffold the whole standard tree + .gitkeeps + seed all
-              ledger/memory/tool templates, PLUS STRUCTURE_RULES.machine.md.
+              ledger/memory/tool templates, PLUS $STRUCT_DOC_NAME.
   --upgrade-rules
               UPGRADE an installed project: replace the existing planner-kit rules block in
               the root CLAUDE.md with this kit's current block, in place (dated backup kept
               first; every byte outside the block untouched). Refuses when no block exists.
+  EVERY MODE  migrates a pre-v1.5 $STRUCT_DOC_OLD at the project root to
+              $STRUCT_DOC_NAME (rename in place, content preserved). Both names
+              present => refuses up front and changes nothing.
   --dry-run   print the actions that WOULD be taken; change nothing (composes with the others).
   -h, --help  show this help.
 Installs into the CURRENT directory ($TARGET_DIR).
@@ -136,6 +159,17 @@ case "$TARGET_DIR/" in
 esac
 if [ -f "$TARGET_DIR/install.sh" ] && [ -d "$TARGET_DIR/payload" ]; then
   abort "current directory looks like a copy of the kit (\"$TARGET_DIR\"). cd into your PROJECT ROOT first, then run: bash \"$KIT_DIR/install.sh\""
+fi
+
+# BOTH-NAMES guard (v1.5): a root that carries the pre-v1.5 STRUCTURE_RULES.machine.md AND the
+# current STRUCTURE_RULES.md is AMBIGUOUS — the installer cannot know which one the project treats
+# as authoritative, and the two may have diverged. Picking one silently would demote the other to
+# invisible-but-still-greppable poison, and overwriting either would destroy content the kit did
+# not write. So: refuse LOUDLY, here in the preconditions, BEFORE any step writes anything — a
+# refused run leaves the project byte-identical. This fires in every mode, --dry-run included:
+# the state is unresolvable, so there is nothing honest to predict either.
+if [ -e "$TARGET_DIR/$STRUCT_DOC_OLD" ] && [ -e "$TARGET_DIR/$STRUCT_DOC_NAME" ]; then
+  abort "\"$TARGET_DIR\" carries BOTH $STRUCT_DOC_OLD and $STRUCT_DOC_NAME — cannot tell which is authoritative, so nothing was changed. REMEDY: keep the one you want as \"$STRUCT_DOC_NAME\", move the other aside (e.g. into Stale_Trash/), then re-run."
 fi
 
 # --upgrade-rules preconditions: upgrade REPLACES an existing block, it never installs one.
@@ -248,7 +282,29 @@ gitkeep_if_empty() {  # gitkeep_if_empty RELPATH — drop a .gitkeep IFF the dir
   fi
 }
 
-seed_structure_doc() {  # seed STRUCTURE_RULES.machine.md, recording THIS kit's abs path into its SEEDS section.
+migrate_structure_doc() {  # v1.5: rename an installed pre-v1.5 STRUCTURE_RULES.machine.md to STRUCTURE_RULES.md.
+  # Runs in EVERY mode (default, --full, --upgrade-rules), BEFORE seed_structure_doc, so one run of any
+  # mode fully converges an old root. NON-DESTRUCTIVE by construction: a rename MOVES the project's own
+  # file (content preserved byte-for-byte, mtime and mode carried by mv), it never copies the payload over
+  # it — so a project that edited its folder contract keeps every edit, under the new name. Plain `mv`, not
+  # `git mv`: the installer must not assume the target is a git repo (staging the rename is the caller's
+  # affair). ZERO deletes. The BOTH-names case aborted in preconditions, so reaching here with the old name
+  # present means the new name is ABSENT and the rename cannot clobber anything. Nothing to migrate (fresh
+  # root, or already migrated) => silent no-op, which is what makes a second run idempotent on this axis.
+  local old="$TARGET_DIR/$STRUCT_DOC_OLD" new="$TARGET_DIR/$STRUCT_DOC_NAME"
+  [ -e "$old" ] || return 0
+  if [ "$DRY_RUN" = 1 ]; then
+    STRUCT_MIGRATED=1
+    record "migrate $STRUCT_DOC_OLD" "would rename -> $STRUCT_DOC_NAME"
+  elif mv "$old" "$new"; then
+    STRUCT_MIGRATED=1
+    record "migrate $STRUCT_DOC_OLD" "renamed -> $STRUCT_DOC_NAME (content preserved)"
+  else
+    record "migrate $STRUCT_DOC_OLD" "FAILED (rename) — old name left in place"
+  fi
+}
+
+seed_structure_doc() {  # seed STRUCTURE_RULES.md, recording THIS kit's abs path into its SEEDS section.
   # Runs in BOTH modes (it is half of the minimal two-file default). Seed-if-absent, never overwrite.
   # The payload doc's placeholder line "@@KIT_SEED_PATH@@" becomes a "KIT_PATH=<abs path>" line so a later
   # on-demand materialization can find the seed templates. The path is passed via the ENVIRONMENT and read
@@ -256,21 +312,26 @@ seed_structure_doc() {  # seed STRUCTURE_RULES.machine.md, recording THIS kit's 
   # Same non-atomicity as the CLAUDE.md create path (direct redirect); guarded by the seed-if-absent check
   # above, so it can never truncate an existing file, and it never runs when src -ef dst (target-inside-kit
   # is already aborted in preconditions).
-  local src="$PAYLOAD_DIR/STRUCTURE_RULES.machine.md"
-  local dst="$TARGET_DIR/STRUCTURE_RULES.machine.md"
+  # The MIGRATED branch is tested BEFORE the exists test on purpose: in a real run the migration already
+  # put the file on disk, in a dry-run it only predicted it, and both must report the SAME line — the
+  # dry-run's prediction is only worth reading if it equals what the real run does.
+  local src="$PAYLOAD_DIR/$STRUCT_DOC_NAME"
+  local dst="$TARGET_DIR/$STRUCT_DOC_NAME"
   if [ ! -f "$src" ]; then
-    record "STRUCTURE_RULES.machine.md" "SKIPPED (no payload source)"
+    record "$STRUCT_DOC_NAME" "SKIPPED (no payload source)"
+  elif [ "$STRUCT_MIGRATED" = 1 ]; then
+    record "$STRUCT_DOC_NAME" "skipped (migrated above — your copy kept)"
   elif [ -e "$dst" ]; then
-    record "STRUCTURE_RULES.machine.md" "skipped (exists)"
+    record "$STRUCT_DOC_NAME" "skipped (exists)"
   elif [ "$DRY_RUN" = 1 ]; then
-    record "STRUCTURE_RULES.machine.md" "would seed (kit path recorded)"
+    record "$STRUCT_DOC_NAME" "would seed (kit path recorded)"
   elif PK_KIT_DIR="$KIT_DIR" awk '
          $0 == "@@KIT_SEED_PATH@@" { print "KIT_PATH=" ENVIRON["PK_KIT_DIR"]; next }
          { print }
        ' "$src" > "$dst"; then
-    record "STRUCTURE_RULES.machine.md" "seeded (kit path recorded)"
+    record "$STRUCT_DOC_NAME" "seeded (kit path recorded)"
   else
-    record "STRUCTURE_RULES.machine.md" "FAILED (write)"
+    record "$STRUCT_DOC_NAME" "FAILED (write)"
   fi
 }
 
@@ -391,8 +452,8 @@ seed_settings() {
 
 # ---- (a/b/b2) FULL-mode scaffold + seed + gitkeep --------------------------
 # Minimal (default) mode SKIPS this whole block: it pre-creates NO folders and seeds NO templates.
-# The agent materializes each folder on demand per STRUCTURE_RULES.machine.md. --full lays down the
-# classic v1.1 tree up front. Both modes still install STRUCTURE_RULES.machine.md + CLAUDE.md below.
+# The agent materializes each folder on demand per STRUCTURE_RULES.md. --full lays down the
+# classic v1.1 tree up front. Both modes still install STRUCTURE_RULES.md + CLAUDE.md below.
 if [ "$FULL" = 1 ]; then
   # ONE source-of-truth dir list (reused by the gitkeep pass below, so the two can never drift). These
   # are fixed kit-relative names with no spaces, so the unquoted word-split in the `for` loops is
@@ -424,7 +485,11 @@ if [ "$FULL" = 1 ]; then
   done
 fi
 
-# ---- STRUCTURE_RULES.machine.md (BOTH modes — the other half of the minimal default) ----
+# ---- STRUCTURE_RULES.md (BOTH modes — the other half of the minimal default) ----
+# MIGRATE first (rename a pre-v1.5 old-name file), THEN seed. The order is load-bearing: seeding
+# first would drop the payload's pristine copy beside the project's edited one and produce exactly
+# the both-names ambiguity the precondition refuses.
+migrate_structure_doc
 seed_structure_doc
 
 # ---- hooks + their registration (BOTH modes — the workflow backstop is default-on) ----
@@ -524,8 +589,10 @@ elif [ "$UPGRADE" = 1 ]; then
 elif grep -q -- '<!-- planner-kit:BEGIN' "$DST_CLAUDE"; then
   # A planner-kit block is already present => the rules merge is a NO-OP (never auto-rewrite the
   # user's CLAUDE.md). But DETECT a VERSION MISMATCH: a block from a different KIT_VERSION won't
-  # carry this version's references (e.g. the STRUCTURE_RULES.machine.md pointer added in v1.2),
-  # so a freshly seeded STRUCTURE_RULES can sit unreferenced beside an older block. Extract the
+  # carry this version's references (e.g. the STRUCTURE_RULES.md pointer, and before v1.5 it named
+  # that file STRUCTURE_RULES.machine.md), so a freshly seeded STRUCTURE_RULES can sit unreferenced
+  # beside an older block — an old block's pointer now names a file that no longer exists under that
+  # name, which is exactly what --upgrade-rules converges. Extract the
   # version token (a leading 'v...') from the FIRST BEGIN marker; a version-less manual drop-in
   # ("planner-kit:BEGIN -->", per README) yields no token => no spurious warning. If it differs
   # from KIT_VERSION, flag it so the summary prints a loud, actionable upgrade warning.
@@ -595,15 +662,16 @@ fi
 # Version-mismatch upgrade warning (printed whenever the ROOT CLAUDE.md carries a planner-kit
 # block from a DIFFERENT kit version). Advice only — the installer NEVER moves or edits user
 # content; the merge stayed a no-op. Without this, an older block reruns as a SILENT no-op while
-# a freshly seeded STRUCTURE_RULES.machine.md is left unreferenced by it.
+# a freshly seeded STRUCTURE_RULES.md is left unreferenced by it (or, from a pre-v1.5 block, is
+# referenced under the retired STRUCTURE_RULES.machine.md name that this run just migrated away).
 if [ -n "$CLAUDE_VER_MISMATCH" ]; then
   printf '\n'
   printf 'WARNING (planner-kit version mismatch):\n'
   printf '  "%s/CLAUDE.md" carries a planner-kit %s block, but this installer is %s.\n' "$TARGET_DIR" "$CLAUDE_VER_MISMATCH" "$KIT_VERSION"
   printf '  The rules merge was a NO-OP: your CLAUDE.md was NOT modified (the installer never\n'
   printf '  rewrites your content). But the older %s block will NOT carry %s references\n' "$CLAUDE_VER_MISMATCH" "$KIT_VERSION"
-  printf '  (e.g. the STRUCTURE_RULES.machine.md pointer), so a freshly seeded\n'
-  printf '  STRUCTURE_RULES.machine.md may now sit UNREFERENCED beside it.\n'
+  printf '  (e.g. the %s pointer, which a pre-v1.5 block still calls %s), so\n' "$STRUCT_DOC_NAME" "$STRUCT_DOC_OLD"
+  printf '  %s may now sit UNREFERENCED beside it.\n' "$STRUCT_DOC_NAME"
   printf '  To upgrade to %s: re-run this installer with --upgrade-rules (it replaces the block\n' "$KIT_VERSION"
   printf '  in place, keeping a dated backup of CLAUDE.md first) — or delete the whole\n'
   printf '  "planner-kit:BEGIN %s ... planner-kit:END" block by hand and re-run without flags.\n' "$CLAUDE_VER_MISMATCH"
@@ -612,12 +680,12 @@ fi
 if [ "$DRY_RUN" = 1 ]; then
   printf '\ndry-run: nothing was written. Re-run without --dry-run to apply.\n'
 elif [ "$FULL" = 1 ]; then
-  printf '\ndone (full). Rules front door: %s/CLAUDE.md; folder contract: %s/STRUCTURE_RULES.machine.md.\n' "$TARGET_DIR" "$TARGET_DIR"
+  printf '\ndone (full). Rules front door: %s/CLAUDE.md; folder contract: %s/%s.\n' "$TARGET_DIR" "$TARGET_DIR" "$STRUCT_DOC_NAME"
   printf 'Re-running is safe: seeds skip existing files; CLAUDE.md is a no-op once the marker is present.\n'
 else
-  printf '\ndone (minimal). Root files: %s/CLAUDE.md + %s/STRUCTURE_RULES.machine.md (pointer stub at .claude/CLAUDE.md).\n' "$TARGET_DIR" "$TARGET_DIR"
+  printf '\ndone (minimal). Root files: %s/CLAUDE.md + %s/%s (pointer stub at .claude/CLAUDE.md).\n' "$TARGET_DIR" "$TARGET_DIR" "$STRUCT_DOC_NAME"
   printf 'Advisory hooks live in .claude/hooks/ and are registered in .claude/settings.json; PLANNER_KIT_HOOKS=off silences them.\n'
-  printf 'The folder tree is materialized on demand per STRUCTURE_RULES.machine.md. Want the classic tree up front? Re-run with --full.\n'
+  printf 'The folder tree is materialized on demand per %s. Want the classic tree up front? Re-run with --full.\n' "$STRUCT_DOC_NAME"
   printf 'Re-running is safe: STRUCTURE_RULES + seeds skip existing files; CLAUDE.md is a no-op once the marker is present.\n'
 fi
 exit 0

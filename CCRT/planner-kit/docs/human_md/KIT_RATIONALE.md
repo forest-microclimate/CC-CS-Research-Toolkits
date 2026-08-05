@@ -35,7 +35,7 @@ structure, and the portability instead.
 
 The first decision you meet is how much the installer actually creates, and the answer, by
 default, is almost nothing. A default install writes two files at the project root, the rules
-(`CLAUDE.md`) and a folder contract (`STRUCTURE_RULES.machine.md`), plus a two-line pointer
+(`CLAUDE.md`) and a folder contract (`STRUCTURE_RULES.md`), plus a two-line pointer
 stub and the two advisory hooks described later. It does not build the folder tree. Instead,
 the folders a project might use are created later,
 one at a time, the moment a task first needs one. The kit calls this on-demand creation
@@ -63,7 +63,7 @@ and confirming they match.
 ## The tree is a set of instructions, not a pre-built shell
 
 If the installer no longer lays down the tree, something has to tell the agent how to build
-it, and that something is the **folder contract**, `STRUCTURE_RULES.machine.md`. Its primary
+it, and that something is the **folder contract**, `STRUCTURE_RULES.md`. Its primary
 reader is the coordinating agent rather than you. It carries the canonical tree, and for each
 folder it gives four things: what the folder is for, the trigger that calls it into being, the
 rule that governs it once it exists, and the mechanical steps to create it. The lazy default,
@@ -83,7 +83,7 @@ disagree.
 ```mermaid
 flowchart TD
     NEED["A task first needs a folder<br/>(say, to persist a brief)"]
-    READ["Read the folder contract<br/>STRUCTURE_RULES.machine.md"]
+    READ["Read the folder contract<br/>STRUCTURE_RULES.md"]
     TRIG{"Has its create-trigger<br/>fired?"}
     WAIT["Leave it absent<br/>absence means not yet needed"]
     MK["Create it now<br/>mkdir -p the folder"]

@@ -1,5 +1,5 @@
 # KIT_RATIONALE.machine.md — Why the Kit Is Built This Way (the design decisions behind a project root that teaches its own agent)
-# STATUS: CURRENT (2026-08-04; was 2026-07-30). Machine root of the KIT_RATIONALE guide; human twin in ../human_md/. K11-B: PREMISE gains PAIRING.ships-inside-ccrt (kit inside the CCRT at `CCRT/planner-kit/`; two deliberately-separate installers).
+# STATUS: CURRENT (2026-08-05; was 2026-08-04). Machine root of the KIT_RATIONALE guide; human twin in ../human_md/. 2026-08-05 (kit v1.5, K12): the folder contract is named `STRUCTURE_RULES.md` throughout, diagram node included (renamed from `STRUCTURE_RULES.machine.md`; content unchanged) — the ../PDF/ render is now STALE on this token and owes a re-render. K11-B: PREMISE gains PAIRING.ships-inside-ccrt (kit inside the CCRT at `CCRT/planner-kit/`; two deliberately-separate installers).
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 # FORM: machine-md · durable reference · primary reader = LLM · atom-preserving translation of the human twin (INVARIANT.convert: every rule/fact/step kept; only packaging changes). SIBLINGS: WORKFLOW_GUIDE.md (the loop itself + how you steer it), KIT_ADOPTION.md (a person installing the kit + putting it to work). This guide stays on the packaging · installation · structure · portability, because the workflow's own reasoning belongs to WORKFLOW_GUIDE.md.
 
@@ -12,7 +12,7 @@ PAIRING.ships-inside-ccrt: the kit travels INSIDE the Claude Code toolkit at `CC
 SCOPE.this-guide: the reasoning behind the kit's design, one decision at a time, each paired with the friction it resolves, so you can weigh each choice + adapt it.
 
 # ─── §1 INSTALL ONLY WHAT THE PROJECT USES ─────────────────────────────────
-DECISION.minimal-default: the first decision — how much the installer actually creates ⇒ by default, almost nothing. A default install writes TWO files at the project root — the rules (`CLAUDE.md`) + a folder contract (`STRUCTURE_RULES.machine.md`) — plus a two-line pointer stub + the two advisory hooks (§7). It does NOT build the folder tree.
+DECISION.minimal-default: the first decision — how much the installer actually creates ⇒ by default, almost nothing. A default install writes TWO files at the project root — the rules (`CLAUDE.md`) + a folder contract (`STRUCTURE_RULES.md`) — plus a two-line pointer stub + the two advisory hooks (§7). It does NOT build the folder tree.
 MECH.lazy-materialization: instead, the folders a project might use are created later, one at a time, the moment a task first needs one ("lazy materialization"). A folder's absence is treated as an ordinary fact about the work so far, NEVER an error: absence means "not yet needed."
 WHY.clutter: reason stated plainly when the design was set — pre-creating a stack of folders a given project never touches is "a lot of unnecessary clutter" (your own words). EX: a project with no figures has no use for a folder to hold them; a project that never retires anything has no use for a retirement folder. ⇒ rather than guess the project's eventual shape + lay down every folder in advance, the kit lets the shape emerge from the work — materializing each folder at the moment of first need + leaving unneeded ones absent.
 FIT.long-lived: this choice fits a long-lived, multi-purpose workspace whose eventual shape you cannot predict at the outset. WRONG choice for a one-shot generator that stamps out a finished project in a single pass, where building the whole structure up front is exactly right. The kit is built for the first kind + says so rather than pretending to suit both.
@@ -20,7 +20,7 @@ EX.full-flag: for anyone who wants the full layout immediately, one flag restore
 WHY.full-identical: that full layout is deliberately held IDENTICAL to the previous version of the kit ⇒ useful side effect: it lets the authors prove the lazy redesign did not break the classic path, by checking the full install against the older one + confirming they match.
 
 # ─── §2 THE TREE IS A SET OF INSTRUCTIONS, NOT A PRE-BUILT SHELL ────────────
-DEF.folder-contract: if the installer no longer lays down the tree, something must tell the agent how to build it ⇒ the folder contract, `STRUCTURE_RULES.machine.md`. Its primary reader is the coordinating agent rather than you. It carries the canonical tree, + for each folder gives FOUR things: (1) what the folder is for, (2) the trigger that calls it into being, (3) the rule that governs it once it exists, (4) the mechanical steps to create it. ⇒ the lazy default replaces a pre-built tree with a specification the agent executes.
+DEF.folder-contract: if the installer no longer lays down the tree, something must tell the agent how to build it ⇒ the folder contract, `STRUCTURE_RULES.md`. Its primary reader is the coordinating agent rather than you. It carries the canonical tree, + for each folder gives FOUR things: (1) what the folder is for, (2) the trigger that calls it into being, (3) the rule that governs it once it exists, (4) the mechanical steps to create it. ⇒ the lazy default replaces a pre-built tree with a specification the agent executes.
 RULE.decidable-triggers: for that to work the specification must be self-sufficient + its triggers must be DECIDABLE, so an agent can act on one without stopping to ask. EX (the concreteness this demands): the agent creates `dev/` the first time it needs to persist a brief, a ledger, an instrument script, a benchmark, or a report — a condition an agent can recognize on its own + act on at once.
 RULE.write-tree-once: the tree is written down only ONCE. The folder contract takes its canonical tree VERBATIM from the same map in the rules file ⇒ there are never two copies of it to drift apart + disagree.
 
@@ -29,7 +29,7 @@ RULE.write-tree-once: the tree is written down only ONCE. The folder contract ta
 ```mermaid
 flowchart TD
     NEED["A task first needs a folder<br/>(say, to persist a brief)"]
-    READ["Read the folder contract<br/>STRUCTURE_RULES.machine.md"]
+    READ["Read the folder contract<br/>STRUCTURE_RULES.md"]
     TRIG{"Has its create-trigger<br/>fired?"}
     WAIT["Leave it absent<br/>absence means not yet needed"]
     MK["Create it now<br/>mkdir -p the folder"]
