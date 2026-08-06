@@ -14,10 +14,29 @@ WHAT IS DERIVED FROM CONTENT (computed here, never copied from a reference bundl
   - skills[].files     : {relpath: text}, keys in sorted() order
   - skills[].bytes     : sum(len(text) for text in files.values())   # CHARACTER count (str len), not UTF-8 bytes
   - skills[].has_sidecar: ("kernel.py" in files) or ("kernel.R" in files)
-  - profiles[]         : discovered from <src>/profiles/<name>.json
+  - profiles[]         : discovered from <src>/profiles/<name>.json, with any
+                          `{{FRAGMENT:<id>}}` token in system_prompt EXPANDED against
+                          <src>/fragments/<id>.* before the profile entry is built (see
+                          FRAGMENT MECHANISM below) -- the manifest hashes the EXPANDED text,
+                          i.e. exactly what ships, never the raw un-expanded source.
   - profiles[].skill_names: None if the profile is unrestricted else its skillNames list
   - counts             : {"skills": len(skills), "profiles": len(profiles)}
   - list ordering      : skills + profiles both sorted by name (ascending)
+
+FRAGMENT MECHANISM (source-level single-sourcing; Rc2, 2026-08-05):
+  Several profiles' system_prompt fields duplicated the SAME standing-behavior block
+  verbatim (audible-alert: 17 of 18 profiles, one canonical body; self-scan: 15 of 18,
+  two named variants -- see bundle_src/fragments/*.md for the canonical bodies and
+  dev/reports/Rc2_*.md for the measurement). Rather than 32 inline copies, a profile's
+  system_prompt now carries an include token, `{{FRAGMENT:<id>}}`, and the builder
+  expands it VERBATIM (a straight substring substitution -- not templated/parameterized,
+  because the measured variants are byte-exact fixed alternatives, not a single family
+  with a plug-in slot) against a same-named file under <src>/fragments/. This is a PURE
+  SOURCE refactor: the fragment file's content is byte-identical to what used to be
+  inlined, so an unchanged bundle_src tree still rebuilds a byte-identical bundle.
+  FAIL-CLOSED: a token whose id has no matching fragment file makes the WHOLE build
+  refuse loudly (FragmentResolutionError, naming every offending profile+id) rather than
+  ship a live system_prompt that still contains a literal unresolved token.
 
 WHAT IS BUILD CONFIG (frozen inputs a builder is given, not derivable from content):
   - bundle_name, bundle_version, created_utc, source_project, note, dropped
@@ -47,7 +66,23 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
+
+
+# Include-token grammar for the fragment mechanism (see module docstring FRAGMENT
+# MECHANISM). Deliberately narrow charset (id = letters/digits/_/-) so a token is easy
+# to eyeball and a malformed one (stray space, wrong bracket count) simply fails to
+# match -- and therefore ships literally into the profile text, which the sanity check
+# in expand_fragments below is designed to still catch (it re-scans for the "{{FRAGMENT:"
+# lead-in even where the full pattern didn't match, e.g. an unclosed token).
+FRAGMENT_TOKEN_RE = re.compile(r"\{\{FRAGMENT:([A-Za-z0-9_-]+)\}\}")
+
+
+class FragmentResolutionError(RuntimeError):
+    """Raised by build_bundle when one or more profiles reference a fragment id with no
+    file under <src>/fragments/, or carry a malformed/unclosed token. Fail-closed: the
+    caller (main()) must treat this as a hard build refusal, never a partial write."""
 
 
 # `manifest` is placed LAST so the skills/profiles bodies serialize first and the
@@ -109,6 +144,64 @@ def discover_skill(skill_dir):
                 continue
             files[rel] = _read_text(full)
     return files
+
+
+def discover_fragments(src):
+    """Return {fragment_id: text} for every non-cruft file directly under <src>/fragments/
+    (non-recursive; is_ignorable applies the same dotfile/.bak/__pycache__ filter as
+    skill discovery). fragment_id = filename stem (e.g. "audible_alert.md" -> "audible_alert").
+
+    Each fragment's trailing newline(s) are stripped at READ time (not baked out of the
+    file on disk): this lets a fragment file follow the ordinary text-file convention of
+    ending in a single newline without that newline leaking into every include site --
+    the profile source's OWN text on either side of the token supplies whatever seam
+    whitespace belongs there, exactly as it did before the fragment existed (verified:
+    see T1 boundary-artifact note in the module docstring / Rc2 report).
+
+    Returns {} if <src>/fragments/ does not exist -- fragments are OPTIONAL; a source
+    tree with no fragments dir builds exactly as it did before this mechanism existed.
+    """
+    frag_root = os.path.join(src, "fragments")
+    fragments = {}
+    if not os.path.isdir(frag_root):
+        return fragments
+    for n in sorted(os.listdir(frag_root)):
+        full = os.path.join(frag_root, n)
+        if not os.path.isfile(full) or is_ignorable(n):
+            continue
+        fid = os.path.splitext(n)[0]
+        fragments[fid] = _read_text(full).rstrip("\n")
+    return fragments
+
+
+def expand_fragments(text, fragments, profile_name, unresolved):
+    """Replace every well-formed {{FRAGMENT:id}} token in `text` with fragments[id],
+    VERBATIM (a straight substring substitution; see module docstring for why this is
+    verbatim-per-named-variant rather than a parameterized template).
+
+    An id with no matching fragment file is NOT substituted -- it is appended to
+    `unresolved` as (profile_name, fid) and the literal token text is left in place, so
+    the caller (build_bundle) can refuse the WHOLE build with every offending
+    profile+id named, rather than silently shipping a live system_prompt that still
+    contains an unresolved token.
+
+    Fail-closed on a MALFORMED token too: after substitution, if the literal lead-in
+    "{{FRAGMENT:" still appears anywhere in the result, that is an unclosed or otherwise
+    malformed token the regex could not parse (e.g. a stray space before the colon, or a
+    missing closing "}}") -- it is recorded into `unresolved` under the id "<malformed>"
+    so the same fail-closed refusal path catches it too.
+    """
+    def _sub(m):
+        fid = m.group(1)
+        if fid not in fragments:
+            unresolved.append((profile_name, fid))
+            return m.group(0)          # leave the token literally; build_bundle refuses
+        return fragments[fid]
+    out = FRAGMENT_TOKEN_RE.sub(_sub, text)
+    if "{{FRAGMENT:" in out:
+        # a malformed token slipped past the regex (e.g. missing "}}") -- still refuse
+        unresolved.append((profile_name, "<malformed-token>"))
+    return out
 
 
 def build_skill_entry(name, files):
@@ -176,6 +269,7 @@ def build_manifest(skills, profiles):
 def build_bundle(src, config, only_skills=None, only_profiles=None):
     skills_root = os.path.join(src, "skills")
     profiles_root = os.path.join(src, "profiles")
+    fragments = discover_fragments(src)
 
     # --- skills ---
     skill_names = [d for d in os.listdir(skills_root)
@@ -188,11 +282,23 @@ def build_bundle(src, config, only_skills=None, only_profiles=None):
     # --- profiles ---
     prof_files = [f for f in os.listdir(profiles_root) if f.endswith(".json")]
     profiles = []
+    unresolved = []
     for f in sorted(prof_files):
         rec = json.load(open(os.path.join(profiles_root, f), encoding="utf-8"))
         if only_profiles is not None and rec["name"] not in only_profiles:
             continue
+        # Expand any {{FRAGMENT:id}} include token BEFORE the profile entry is built, so
+        # the manifest hashes the assembled (shipped) text -- never the raw source. A
+        # profile with no tokens is unaffected (expand_fragments is then a no-op).
+        rec["system_prompt"] = expand_fragments(
+            rec.get("system_prompt", ""), fragments, rec["name"], unresolved)
         profiles.append((rec["name"], rec))
+    if unresolved:
+        detail = "; ".join("%s -> {{FRAGMENT:%s}}" % (p, i) for p, i in unresolved)
+        raise FragmentResolutionError(
+            "build REFUSED: %d unresolved fragment include(s): %s -- add the missing "
+            "fragment file(s) under %s or fix the profile source."
+            % (len(unresolved), detail, os.path.join(src, "fragments")))
     profiles = [build_profile_entry(rec) for _n, rec in sorted(profiles, key=lambda x: x[0])]
 
     # --- assemble top-level in exact key order ---
@@ -228,9 +334,14 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     config = json.load(open(args.config, encoding="utf-8"))
-    obj = build_bundle(args.src, config,
-                       only_skills=_load_manifest(args.only_skills),
-                       only_profiles=_load_manifest(args.only_profiles))
+    try:
+        obj = build_bundle(args.src, config,
+                           only_skills=_load_manifest(args.only_skills),
+                           only_profiles=_load_manifest(args.only_profiles))
+    except FragmentResolutionError as exc:
+        print("FRAGMENT GATE: FAIL", file=sys.stderr)
+        print(str(exc), file=sys.stderr)
+        return 2
     data = serialize(obj).encode("utf-8")
     with open(args.out, "wb") as fh:
         fh.write(data)

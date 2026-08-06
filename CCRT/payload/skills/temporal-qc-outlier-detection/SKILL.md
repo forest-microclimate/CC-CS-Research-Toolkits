@@ -3,7 +3,7 @@ name: temporal-qc-outlier-detection
 description: QC / outlier-detection for autocorrelated environmental time series (tower met, flux, VPD, radiation) — separate spike vs drift vs level-shift into distinct matched passes, stratify by same-half-hour bin so the diurnal cycle is preserved, not mass-flagged, use a windowed median with a POOLED MAD, and layer detectors that degrade gracefully. Use when flagging outliers/spikes/drift in an environmental series, building a QC pipeline, or when a single rolling-window (Hampel) filter mass-flags dawn/dusk transitions or whole climate-anomaly years.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # temporal-qc-outlier-detection — QC autocorrelated env series without laundering real signal
 

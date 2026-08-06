@@ -3,7 +3,7 @@ name: bash-hook-contract
 description: Invoke WHEN writing or debugging a Claude Code hook (bash/python) or any script that reads Claude's stdin-JSON, maps hook exit codes (0 pass / 2 block / others fail-open-but-logged), enforces a portable timeout without the `timeout` binary, gates on the CRT master switch, or writes a file atomically. Holds the macOS/Linux portability contract for hooks. Pair with the toolkit-extension-authoring skill for where the hook registers.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-12). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-12).
 # bash-hook-contract - the Claude Code hook I/O + portability contract
 
 ## When to invoke

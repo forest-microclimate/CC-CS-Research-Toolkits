@@ -4,7 +4,7 @@ description: Produce AND validate calibrated predictive uncertainty for an ML mo
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 
-# STATUS: CURRENT (2026-07-16). Ported from the Claude Science skill (reverse port T-42).
+# STATUS: CURRENT (2026-07-16).
 
 # calibrated-uq-for-ml — predictive intervals you can trust
 

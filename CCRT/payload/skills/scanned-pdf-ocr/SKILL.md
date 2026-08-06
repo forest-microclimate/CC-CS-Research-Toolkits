@@ -3,7 +3,7 @@ name: scanned-pdf-ocr
 description: Extract text from scanned or image-only PDFs (no usable text layer, or garbled mojibake extraction) — degraded journal scans, two-column academic articles, old book chapters. Use when pypdfium2/pdfplumber text extraction returns almost nothing or unreadable control-character garbage, when a citation must be verified against a scanned primary source, or when the user says a PDF "won't extract" / "is just images". Ships a detector + rasterizer + offline Tesseract OCR as a bundled CLI (scanned_pdf_ocr.py); for a hard page, rasterize it and read the PNG directly with the Read tool.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-19). Authored for Claude Code from the v2.0 scanned-pdf-ocr skill. Reshipped as a top-level `scanned_pdf_ocr.py` CLI (no auto-load kernel). Path 1 (offline Tesseract) is verbatim; the v2.0 in-kernel vision-model path has no Claude Code equivalent and is replaced by rasterize-then-Read-the-PNG.
+# STATUS: CURRENT (2026-07-19). Reshipped as a top-level `scanned_pdf_ocr.py` CLI (no auto-load kernel). Path 1 (offline Tesseract) is verbatim; the v2.0 in-kernel vision-model path has no Claude Code equivalent and is replaced by rasterize-then-Read-the-PNG.
 
 # scanned-pdf-ocr — OCR for image-only PDFs
 

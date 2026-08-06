@@ -1,5 +1,5 @@
 # parallel-runs.machine.md
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 # RULE: maximize USEFUL concurrency for independent runs; batch-analyze; keep total active within the core cap (≤ cores−2, ~2 free).
 

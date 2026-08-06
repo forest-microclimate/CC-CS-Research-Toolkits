@@ -3,7 +3,7 @@ name: scientific-ml-fundamentals
 description: The discipline layer for any scientific-ML or data-driven model on a tall-forest flux-tower forcing reconstruction — scope ML to where it earns its place (large multi-year gaps, multi-source fusion, joint time×height reconstruction, NOT short-gap bridging), benchmark every model against the existing brms/mgcv product before trusting it, score gap-fill on a QUALITY composite (accuracy + variability fidelity + calibrated coverage + seam-freeness) never RMSE alone, and ship calibrated uncertainty by default. Use when starting, scoping, or evaluating any ML or data-driven gap-fill, fusion, reconstruction, or emulator model; when choosing an error metric or reporting model skill; when about to split data, optimize RMSE or MAE, or ship a point prediction; or when deciding whether ML is the right tool for a given gap regime.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-16). Ported from the Claude Science skill (reverse port T-42).
+# STATUS: CURRENT (2026-07-16).
 
 # scientific-ml-fundamentals — earn ML's place, then score it on the right metric
 

@@ -1,5 +1,5 @@
 # reproduce-before-fixing.machine.md  (machine-optimized; style policy: doc-style.machine.md)
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 # RULE: WHEN a reported anomaly / dramatic number / "bug" arrives ⇒ FIRST action is to REPRODUCE it at BASELINE (every candidate/experimental fix OFF) on the INTENDED production config, reading the CLEAN variable (not a scaled recorder), confirming it is present AND physically flagged — BEFORE any probe / chain-walk / fix. Falsifier-first at the "is there even a bug?" level.
 # ORIGIN: user, 2026-07-04 — root of an ENTIRE wasted session (probe→chain-walk→candidate-fix→"verify", many runs + several engine edits) built atop a premise that ONE cheap baseline-on-production test demolished (OVER=0). Cross-project ⇒ lives at the global rules level (like refactor-invariants).
@@ -21,6 +21,6 @@ INSTANTIATION (make it one command): wrap steps (2)-(5) in a single baseline-che
 
 CASE (illustrative): "per-leaf absorbed SW = 1861 W/m² > solar-constant 1361 W/m²" drove a full probe→chain-walk→candidate-fix→verify campaign (many runs, several engine edits) — with the baseline-on-production test NEVER run first. When finally run, the clean value was bounded ⇒ NO bug: the dramatic number was a WRONG-CONFIG artifact (a production-realism toggle silently defaulted OFF) COMPOUNDED by reading a rescaled `*_OUT` recorder instead of the clean engine variable. One baseline-on-production command would have ended the chase on move one.
 
-CAVEAT (LLM limits): no reliable introspection ⇒ this rule REDUCES (not eliminates) the failure, and only if it is LOADED and a TELL actually fires. Hence the TELLS are phrased as detectable output-states (about-to-build, impossible-number, edifice-without-falsifier, recorder-for-magnitude), not exhortations.
+CAVEAT: standing-mandate's CANONICAL CAVEAT (LLM limits) applies — reduces-not-eliminates, and only when LOADED + a TELL fires.
 
 REF: verification-principles.md (verify-don't-assume; falsifier-first) · refactor-invariants.machine.md (companion cross-project rule — un-propagated premise ⇒ non-converging saga). Related: confirm config from the run's OWN resolved-config banner (a realism toggle can silently default OFF ⇒ wrong-config), and read the CLEAN engine variable — never a scaled `*_OUT` recorder (recorders can be transformed/scaled).

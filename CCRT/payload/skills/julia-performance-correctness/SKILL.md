@@ -3,7 +3,7 @@ name: julia-performance-correctness
 description: Diagnose and fix Julia performance (allocations, type instability, dispatch) and correctness gotchas (column-major, aliasing, @inbounds, float equality). Use when writing, reviewing, or debugging Julia — especially numerical hot loops — or when hitting slow code, unexpected allocations, type-instability, method-ambiguity, or a silently-wrong numerical result.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # julia-performance-correctness — type stability, allocations, dispatch, correctness
 

@@ -3,7 +3,7 @@ name: brms-hierarchical-fitting
 description: Fit hierarchical / multilevel Bayesian models in brms + cmdstanr on autocorrelated ecological time series — two-scale temporal AR, custom latent effects via stanvars, diagnosing stiff-geometry chain splits, and choosing variance-vs-transform. Use when building a brms/Stan hierarchical model, adding temporal AR structure, hitting stalled/split chains or high Rhat, deciding a partial-effect plot, or when a random-slope/interaction verdict is at stake.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # brms-hierarchical-fitting — hierarchical Bayes on autocorrelated eco data
 

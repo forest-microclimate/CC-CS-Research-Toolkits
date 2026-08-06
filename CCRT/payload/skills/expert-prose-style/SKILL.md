@@ -3,7 +3,7 @@ name: expert-prose-style
 description: "Adopt an expert flowing-prose register for a domain-expert reader — prose paragraphs over bullets, no unrequested condensing, standard technical terms left undefined. Load WHEN the user asks for expert / prose / flowing-prose style or invokes this skill; persists for the rest of the conversation until they ask for a different style."
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-14). Ported from the Claude Science expert-prose-style skill (reverse port). Zero dependencies: copied verbatim; only this STATUS header was added.
+# STATUS: CURRENT (2026-07-14). Reverse-ported from Claude Science.
 
 
 Apply this register for the rest of the conversation, until the user asks for a different style.

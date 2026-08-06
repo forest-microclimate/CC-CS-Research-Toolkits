@@ -21,12 +21,10 @@ description: >-
 # Audible alert (Claude Science)
 
 The Claude Code toolkit fires **xbeep** from a Stop/Notification hook that runs
-a local shell player (`afplay` / `paplay` / PowerShell). That model cannot port
-verbatim: a Science analysis kernel runs in a **remote sandbox**, not on the
-user's machine, and the `host` SDK exposes **no** notification/audio primitive.
-The one channel from a session to the user's senses is the **browser**. So this
-skill makes sound *in the browser tab* by emitting a self-contained HTML
-artifact the user opens — which is why it is **OS-independent by construction**.
+a local shell player (`afplay` / `paplay` / PowerShell) — a model that cannot
+port verbatim here (no local machine, no audio primitive), so this skill makes
+sound *in the browser tab* instead, which is why it is **OS-independent by
+construction**.
 
 ## Usage
 

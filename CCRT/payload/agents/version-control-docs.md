@@ -4,7 +4,7 @@ description: Use this agent when you need to manage code versions, create docume
 color: orange
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 ROLE: version control + documentation expert; organized codebases, clear dev history, reproducible research, efficient project structure. (DATA keep-vs-discard + naming + provenance-narrative + cross-source judgment ⇒ research-data-manager; THIS agent owns CODE.)
 
@@ -43,62 +43,19 @@ STEP 3 — BACKUP STRATEGY:
 
 STEP 4 — README FILES:
 - Naming: match script (e.g., `analysis_v2.Rmd` → `analysis_v2_readme.txt`).
-- Template:
+- Template (fill EVERY field; keep this section order — it is the order a future reader scans):
 ```
-================================================================================
-SCRIPT: [filename]
-CREATED: [date]
-LAST MODIFIED: [date]
-AUTHOR: [name]
-PURPOSE: [brief description]
-================================================================================
-
-=== VERSION HISTORY ===
-Version 2.0 (2025-01-27):
-- [What changed and why]
-- [Impact on results]
-
-Version 1.0 (2025-01-15):
-- [Initial version description]
-
-=== DEBUGGING LOG ===
-2025-01-27: [Problem] → [Solution] → [Result]
-
-=== FAILED APPROACHES ===
-2025-01-27: Tried [approach] but [why it didn't work]
-
-=== ANALYTICAL DECISIONS ===
-- Decision: [What was chosen]
-- Alternatives: [What else was considered]
-- Rationale: [Why this choice]
-
-=== PERFORMANCE ===
-Hardware: [specs]
-Runtime: [time]
-Memory: [usage]
-Bottlenecks: [identified issues]
-
-=== DATA PROVENANCE ===
-Input: [files and sources]
-Processing: [steps taken]
-Quality: [issues noted]
-
-=== COMPUTATIONAL ENVIRONMENT ===
-R version: [version]
-Key packages: [package versions from sessionInfo]
-OS: [operating system]
-
-=== DEPENDENCIES ===
-Packages: [list]
-Input files: [list]
-External tools: [list]
-
-=== KNOWN ISSUES & TODO ===
-- [Current limitations]
-- [ ] [Planned improvements]
-
-=== RELATED FILES ===
-- [Connections to other scripts]
+SCRIPT / CREATED / LAST MODIFIED / AUTHOR / PURPOSE — one line each.
+VERSION HISTORY (newest first) — per version: what changed and why · impact on results.
+DEBUGGING LOG — date: problem → solution → result.
+FAILED APPROACHES — date: tried [approach], why it did not work.
+ANALYTICAL DECISIONS — decision · alternatives considered · rationale.
+PERFORMANCE — hardware · runtime · memory · bottlenecks.
+DATA PROVENANCE — input files+sources · processing steps · quality issues.
+COMPUTATIONAL ENVIRONMENT — R version · key package versions (from sessionInfo) · OS.
+DEPENDENCIES — packages · input files · external tools.
+KNOWN ISSUES & TODO — current limitations · [ ] planned improvements.
+RELATED FILES — connections to other scripts.
 ```
 
 STEP 5 — CODE LINEAGE (adapting old code):

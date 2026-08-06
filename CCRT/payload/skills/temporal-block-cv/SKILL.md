@@ -3,7 +3,7 @@ name: temporal-block-cv
 description: Construct temporal / blocked cross-validation folds for autocorrelated or rare-event data (blocked, not iid CV), and evaluate with metrics that survive class imbalance (PR-AUC, calibration/reliability, Brier) rather than accuracy. Use when cross-validating a time-series, spatial, or rare-event / class-imbalanced model, selecting a model/scale/feature on such data, or when someone proposes a random iid split on autocorrelated data.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # temporal-block-cv — leakage-free CV for autocorrelated & rare-event data
 

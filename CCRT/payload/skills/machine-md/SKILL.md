@@ -3,7 +3,7 @@ name: machine-md
 description: Invoke WHEN writing or editing any doc whose primary reader is an LLM — *.machine.md, .claude/ files (CLAUDE.md, rules, agents, skills, settings), auto-memories, hand-offs. Applies LLM-writing best-practices — positive trigger-conditioned framing, output-detectable triggers, brief concrete examples, terse machine style, atom-preservation. Pair with the machine-doc-reviewer agent for a review pass.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # machine-md — write docs an LLM will ACT on
 

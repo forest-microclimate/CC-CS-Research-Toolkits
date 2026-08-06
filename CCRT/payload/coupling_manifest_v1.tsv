@@ -7,7 +7,7 @@
 # AS_OF: 2026-07-28
 # TOPIC_ID: cc-agent-skill-coupling
 # PRIMARY_READER: install.sh selection logic + verify_coupling.sh gate + the manifest->skillNames generator
-# SOURCE_OF_TRUTH: claude-research-toolkit/payload/agents/*.md (18 agents) x claude-research-toolkit/payload/skills/*/ (46 skills; counts recounted 2026-08-03 — manifest skill rows match payload/skills dirs 1:1 at 46)
+# SOURCE_OF_TRUTH: claude-research-toolkit/payload/agents/*.md (18 agents) x claude-research-toolkit/payload/skills/*/ (47 skills; counts recounted 2026-08-03 — manifest skill rows match payload/skills dirs 1:1 at 47)
 # METHOD: word-boundary skill-token scan of each agent body -> per-referrer semantic class (OPERATIONAL/DEFER-TO create a dependency; BOUNDARY/EXAMPLE do NOT) -> tier
 # TIER_RULE: 0 dep referrers=STANDALONE; 1=DEDICATED; >=2=SHARED; deferred-family=DEFERRED; kind=agent=AGENT-ONLY
 # COUNTS: {'DEDICATED': 25, 'STANDALONE': 12, 'DEFERRED': 2, 'SHARED': 7, 'AGENT-ONLY': 5}  (RECOUNTED 2026-08-03 from the actual SECTION-1 rows: 51 rows = 46 skill + 5 agent; supersedes the stale pre-release figures 22/18/3/6/5 which summed to 54)

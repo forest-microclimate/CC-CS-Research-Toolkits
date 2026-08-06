@@ -29,9 +29,7 @@ BRANCH:
 The SHARED CORE (audit heuristic) is identical on both; only the ACTION VERBS differ, because the
 platforms genuinely differ (CC = files you move; Science = SDK records you delete-with-restore).
 
-# ═══════════════════════════════════════════════════════════════════════════
 # SHARED CORE — the audit (identical on both surfaces)
-# ═══════════════════════════════════════════════════════════════════════════
 STEP.1_inventory: enumerate the full capability set — every agent AND every skill. Compare across
   the UNION {agents ∪ skills}, NOT within-type: an agent can duplicate a skill (real + common).
 STEP.2_classify_ownership: tag each item so only USER-OWNED items are eligible to retire/relocate.
@@ -62,17 +60,13 @@ INVARIANT.recommend_not_enforce: the output is a RECOMMENDATION, never an auto-a
   false-positive costs the user one "no," never a lost capability. Cheap-first, false-positive-
   tolerant-but-flagged.
 
-# ═══════════════════════════════════════════════════════════════════════════
 # COMMIT-CLASS GATE (applies to any retire/relocate, both surfaces)
-# ═══════════════════════════════════════════════════════════════════════════
 Retire/relocate MOVES or DELETES user capability ⇒ COMMIT-CLASS (see
 `rules/recon-before-commitment.machine.md`): survey + self-adjudicate FIRST, make the surveyed
 scope explicit (STEP.4 table), and the COMMIT is user-gated. INVARIANT.never_destroy_first: on
 NEITHER surface does a delete/rm precede a verified copy. Every retire is reversible.
 
-# ═══════════════════════════════════════════════════════════════════════════
 # CC ADAPTER  (Claude Code — files under ~/.claude; driven by lib/capability-audit.sh)
-# ═══════════════════════════════════════════════════════════════════════════
 CC.inventory: `bash "$HOME/.claude/lib/capability-audit.sh" inventory` — walks
   `~/.claude/{agents,skills,commands}` (+ a project `<proj>/.claude/` if given), reusing
   doc-status.sh's `is_durable` + prune (backups/ plugins/ .git/) for the ownership walk.
@@ -92,9 +86,7 @@ CC.retire (PROC — mirrors dev-tree.sh `offload`: copy → verify → USER remo
 CC.relocate: global (`~/.claude/`) ↔ project (`<proj>/.claude/`) is a first-class reversible file move
   (offload model: copy to destination, verify, print the user-run rm of the source).
 
-# ═══════════════════════════════════════════════════════════════════════════
 # SCIENCE ADAPTER  (Claude Science — host.agents/host.skills via the repl tool)
-# ═══════════════════════════════════════════════════════════════════════════
 SCI.inventory: `host.agents.list()` + `host.skills.list()` (repl tool). Agent records carry
   `source` + `enabled`; skill records carry `origin`.
 SCI.ownership: ELIGIBLE = agents `source=="user"`; skills `origin ∈ {personal, draft}`.
@@ -125,9 +117,7 @@ SCI.retire (PROC — host.*.delete is DESTRUCTIVE + there is no user-shell ⇒ r
      SCI.oq1_resolved — so a profile retire is delete-with-restore.)
   6. REVERSE — RESTORE.md documents the rebuild: host.agents.create / host.skills.edit+publish from the bundle.
 
-# ═══════════════════════════════════════════════════════════════════════════
 # PORTABILITY / IDEMPOTENCY / BLAST-RADIUS
-# ═══════════════════════════════════════════════════════════════════════════
 PORTABILITY (CC lib): bash-3.2 floor + Linux — no `timeout` binary, no GNU-only find/sed flags;
   prune via the doc-status.sh `\( -name backups -o -name plugins -o -name .git \) -prune` idiom.
 IDEMPOTENCY: the audit is READ-ONLY + repeatable (re-run = same report on unchanged state). backup

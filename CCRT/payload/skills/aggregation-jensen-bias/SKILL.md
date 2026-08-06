@@ -3,7 +3,7 @@ name: aggregation-jensen-bias
 description: Avoid Jensen-inequality bias when aggregating a nonlinear quantity from averaged inputs — compute-then-average at native resolution, keep the tails, and treat temporal vs spatial spread as DISTINCT marginals (keep them separate rather than collapsing to a single per-bin median or sum). Use when averaging/binning/aggregating any quantity that is nonlinear in its inputs (energy-balance fluxes, wind speed, ratios, back-transformed fits), when calibrating across sensors/sites where the disagreement IS the signal, or when a mean-state summary might hide heterogeneity.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # aggregation-jensen-bias — F(mean) ≠ mean(F); keep the marginals
 

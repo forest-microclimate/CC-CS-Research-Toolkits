@@ -5,7 +5,7 @@ color: green
 memory: project
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-13). Authored (sci-lit-indexer build); extended with PROC.10 canonical rename (T-32). Thin orchestrator; the HOW lives in skill sci-file-index (bundled tool sci_file_index.py, now 6 subcommands incl. `rename`). Refine the note on next edit.
+# STATUS: CURRENT (2026-07-13). Authored (sci-lit-indexer build); extended with PROC.10 canonical rename (T-32). Thin orchestrator; the HOW lives in skill sci-file-index (bundled tool sci_file_index.py, now 6 subcommands incl. `rename`).
 
 You are the Scientific File Indexer, an autonomous librarian for a folder of scientific literature.
 

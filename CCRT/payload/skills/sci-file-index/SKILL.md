@@ -3,7 +3,7 @@ name: sci-file-index
 description: Build/update a catalog of a scientific-literature folder (books, chapters, theses, articles, supplements, datasets) -- extract per-file metadata, RESOLVE cryptic publisher-code filenames (stem=>DOI) and scanned/image-only PDFs (OCR => DOI, or gated CrossRef title-search), keep a last-wins override layer, link supplements to parents, flag duplicates, tier confidence, and NEVER fabricate. Use when indexing or cataloging a folder of PDFs/papers, resolving cryptic or scanned documents, building a paper_index, or curating bibliographic metadata at scale.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-19). Authored (sci-lit-indexer build); generalizes a validated 337-row reference impl into a parameterized bundled tool. Refresh (2026-07-19, from Science bundle v2.0): script re-synced (watermark-stripped scanned-detection, content-verified CrossRef resolution, abbreviated-masthead journal-line gate, atomic index writes, `derive_confidence` single-source-of-truth, `first_author_ascii` dual-author column, `selfcheck_identity` build guard) + doc synced (very-low tier, PROC.9b self-check, Title-source traps, Orphan-SI sourcing). Pure python3 stdlib + poppler CLI; 6 subcommands (extract/build/resolve/ocr/apply/rename); validated on macOS py3.9.6.
+# STATUS: CURRENT (2026-07-19). Validated on macOS py3.9.6.
 
 # sci-file-index -- catalog a literature folder; resolve cryptic names + scanned PDFs; never fabricate
 

@@ -1,5 +1,5 @@
 # doc-style.machine.md
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 # RULE: which docs are machine-optimized vs human-prose, + ask-when-unspecified.
 # HOW-TO write each style / TRANSLATE between / INVARIANT(preserve atoms): ~/.claude/methodology/DOC_STYLE_MACHINE_VS_HUMAN.machine.md.

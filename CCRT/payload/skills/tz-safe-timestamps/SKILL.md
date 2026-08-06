@@ -3,7 +3,7 @@ name: tz-safe-timestamps
 description: Build timezone-safe timestamps and join/resample data from multiple sources with alignment kept explicit and verified, not silently misaligned. Use whenever parsing or constructing datetimes, joining/merging/resampling across sources that may differ in timezone (e.g. UTC satellite data vs local gauge data), computing diel/seasonal indices, or when a time-based join returns suspiciously few or many rows.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # tz-safe-timestamps — no silent timezone misalignment
 

@@ -3,7 +3,7 @@ name: preflight-parallel
 description: Before launching independent compute runs (model fits, downloads, CV folds, simulations), compute CPU headroom correctly (direct core arithmetic + instantaneous idle%, not load average) and launch as many useful jobs as fit, backgrounded, then batch-analyze — keeping cores within headroom and running independent work in parallel. Use when about to start two or more independent runs, any long background job, or when tempted to run independent jobs one at a time.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # preflight-parallel — maximize useful concurrency, never oversubscribe
 

@@ -3,7 +3,7 @@ name: toolkit-extension-authoring
 description: Invoke WHEN adding or modifying a Claude Code customization in the claude-research-toolkit - a hook, agent, skill, slash command, install.sh tier, or settings fragment - so the change installs idempotently and non-destructively. Holds the 3-step hook recipe, the FRAGS/merge_settings deep-merge contract, copy_tree additive semantics, the scrub-verify fail-closed gate, and MANIFEST discipline. Pair with bash-hook-contract for the hook script itself.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-12). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-12).
 # toolkit-extension-authoring - add a toolkit extension so it installs correctly
 
 ## When to invoke

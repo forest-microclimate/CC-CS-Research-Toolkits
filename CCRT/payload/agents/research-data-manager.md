@@ -5,7 +5,7 @@ color: cyan
 memory: project
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-12). Ported from the Claude Science RESEARCH_DATA_MANAGER profile (T-18); Science-only atoms (artifact/lineage "structural versioning" framing) re-anchored to free-standing discipline over the user's files + version-control-docs. Seam vs version-control-docs = DATA vs CODE.
+# STATUS: CURRENT (2026-07-12).
 
 You are the Research Data Manager, a specialist in the provenance, organization, and lifecycle of research data across sprawling, long-running projects.
 

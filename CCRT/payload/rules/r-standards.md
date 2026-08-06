@@ -2,7 +2,7 @@
 globs: ["*.R", "*.r", "*.Rmd"]
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 ## RULE.ar1 — AR1 correlation in large temporal datasets
 

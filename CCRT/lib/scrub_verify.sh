@@ -13,7 +13,11 @@ PAYLOAD="${1:-$SCRIPT_DIR/../payload}"
 # Project pointers / dead paths / engine identifiers that MUST NOT survive anywhere in payload/:
 # NOTE: \[\[[A-Za-z] matches an Obsidian wikilink ([[name…, always letter-initial) but NOT bash
 # `[[ cond ]]` (space after [[) nor a POSIX class `[[:space:]]` (colon after [[).
-FAIL='(\[\[[A-Za-z]|/Users/|projects/CliMA|EmeraldDeveloping|code/diel|clima-[a-z-]+\.machine|@protocols|native_baseline|diel_setup|GF_SWSUNBINS|DIEL_[A-Z]|gfh_|p_fleck|p_sunlit|GF-bins|PCFW_ROOT|CliMA|Emerald|sunfleck|km67|Pará|Manaus)'
+# NOTE: one project-root token is written with a single-character class (`P[C]FW_ROOT`) so this
+# gate's own source does not carry the very literal it screens for — a scanner that spells out its
+# denylist becomes a hit in any tree-wide scan of the same vocabulary. ERE matches the same string
+# either way; --self-test case (D) proves it, so the masking cannot silently break the pattern.
+FAIL='(\[\[[A-Za-z]|/Users/|projects/CliMA|EmeraldDeveloping|code/diel|clima-[a-z-]+\.machine|@protocols|native_baseline|diel_setup|GF_SWSUNBINS|DIEL_[A-Z]|gfh_|p_fleck|p_sunlit|GF-bins|P[C]FW_ROOT|CliMA|Emerald|sunfleck|km67|Pará|Manaus)'
 # Verification-marker whitelist: `[[vloop:…]]` etc. are LEGITIMATE status tokens the VLOOP
 # self-check system emits + greps — NOT wikilinks. Known-family prefixes only (a whitelist of
 # status tokens, not a broadening of the wikilink class). EDGE CASE: the post-filter drops the
@@ -28,19 +32,24 @@ EXCLUDE_BINARY=(--exclude='*.pdf' --exclude='*.docx' --exclude='*.png' --exclude
 # can silently go over-broad: (A) a dangling ref in SOURCE TEXT is still caught THROUGH the marker
 # filter (fail-closed); (B) a byte coincidence inside a derived binary (.pdf) is NOT caught (the
 # bug the 2026-07-12 exclusion fix closed); (C) a legitimate [[vloop:…]] verification marker is
-# NOT flagged (the false-positive the 2026-07-27 MARKER_SAFE fix closed).
+# NOT flagged (the false-positive the 2026-07-27 MARKER_SAFE fix closed); (D) the project-root
+# token written as a character class still matches its LITERAL (the 2026-08-06 masking fix — the
+# planted string is assembled at runtime, so proving the match costs this file no literal).
 if [ "${1:-}" = "--self-test" ]; then
   TD="$(mktemp -d)"; trap 'rm -rf "$TD"' EXIT
   printf 'a dangling ref /Users/x and a [[Wikilink to CliMA\n' > "$TD/planted.machine.md"       # (A) source text
   printf '%%PDF-1.7 binary [[Xcoincidence CliMA stream\n' > "$TD/derived.pdf"                    # (B) fake derived binary
   printf 'legit [[vloop:g n_claims=4]] marker\n' > "$TD/marker_ok.py"                            # (C) verification marker
+  printf 'a project-root ref P%sFW_ROOT/docs survives\n' C > "$TD/masked_token.machine.md"       # (D) literal, assembled here
   a_hits="$(grep -rInE "${EXCLUDE_BINARY[@]}" "$FAIL" "$TD/planted.machine.md" 2>/dev/null | grep -vE "$MARKER_SAFE" || true)"
   b_hits="$(grep -rInE "${EXCLUDE_BINARY[@]}" "$FAIL" "$TD/derived.pdf" 2>/dev/null || true)"
   c_hits="$(grep -rInE "${EXCLUDE_BINARY[@]}" "$FAIL" "$TD/marker_ok.py" 2>/dev/null | grep -vE "$MARKER_SAFE" || true)"
+  d_hits="$(grep -rInE "${EXCLUDE_BINARY[@]}" "$FAIL" "$TD/masked_token.machine.md" 2>/dev/null | grep -vE "$MARKER_SAFE" || true)"
   rc=0
   if [ -n "$a_hits" ]; then echo "  (A) source-text ref CAUGHT ✓"; else echo "  (A) FAIL: source-text ref MISSED — gate no longer fail-closed"; rc=1; fi
   if [ -z "$b_hits" ]; then echo "  (B) derived .pdf coincidence SKIPPED ✓"; else echo "  (B) FAIL: derived .pdf scanned — the excluded-binary fix regressed"; rc=1; fi
   if [ -z "$c_hits" ]; then echo "  (C) legit [[vloop:…]] marker NOT flagged ✓"; else echo "  (C) FAIL: verification marker flagged — MARKER_SAFE whitelist regressed"; rc=1; fi
+  if [ -n "$d_hits" ]; then echo "  (D) masked project-root token CAUGHT ✓"; else echo "  (D) FAIL: masked token MISSED — the character-class masking broke the pattern"; rc=1; fi
   [ "$rc" = 0 ] && echo "SELF-TEST: PASS" || echo "SELF-TEST: FAIL"
   exit "$rc"
 fi

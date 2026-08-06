@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com>
-# planner-kit installer (v1.5) — LAZY-SCAFFOLD: minimal by default, --full for the classic tree.
+# planner-kit installer (v1.6) — LAZY-SCAFFOLD: minimal by default, --full for the classic tree.
 # Idempotent & non-destructive: a re-run changes nothing it already did; ZERO deletes, ZERO overwrites
 # (the ONE deliberate exception: --upgrade-rules rewrites the planner-kit block inside the root
 #  CLAUDE.md IN PLACE, after keeping a dated backup — everything outside the block stays byte-untouched).
@@ -68,7 +68,7 @@
 set -u
 set -o pipefail
 
-KIT_VERSION="v1.5"
+KIT_VERSION="v1.6"
 
 # The installed folder contract's file name, and the pre-v1.5 name it migrates FROM. Kept as two
 # variables so the name lives in ONE place: every seed, migration, guard, summary line and closing

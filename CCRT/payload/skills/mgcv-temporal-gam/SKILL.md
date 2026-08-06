@@ -3,7 +3,7 @@ name: mgcv-temporal-gam
 description: Fit a temporal / autocorrelated additive model in mgcv, choosing smooth basis dimension k defensibly (gam.check on progressive subsets) and handling AR1 residual autocorrelation with bam(discrete,rho,AR.start), plus a guard for right-skewed predictors whose extreme tail is the region of interest. Use when fitting a GAM/GAMM to time-series data (large n or temporal autocorrelation), selecting k, hitting a gamm() Cholesky error, or when the response depends on the heavy tail of a skewed predictor.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # mgcv-temporal-gam — defensible k, AR1, and skewed-tail guard
 

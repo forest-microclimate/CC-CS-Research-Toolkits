@@ -3,7 +3,7 @@ name: multi-source-fusion-bias-correction
 description: Harmonize a gappy in-situ reference series (e.g. a flux tower) with satellite and reanalysis sources into ONE continuous record by bias-correcting each secondary source to the reference over their temporal OVERLAP before fusing — so no step-discontinuity seam appears where sources meet. Assess the defect first (mean bias / scale / distribution shape) with source_agreement, then match the correction to it: linear rescale for a location+scale offset, quantile mapping for a distribution-shape defect. Use when filling multi-year gaps that within-record temporal memory cannot reach (autocorrelation e-fold ≤33 h), blending tower + satellite (MSG/CERES) + ERA5 into one forcing, correcting a systematic offset/scale/distribution difference between sources of different provenance, or whenever you are about to concatenate or splice series from different sources into one variable.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-16). Ported from the Claude Science skill (reverse port T-42).
+# STATUS: CURRENT (2026-07-16).
 
 # multi-source-fusion-bias-correction — carry information across gaps too long for temporal memory
 

@@ -1110,6 +1110,18 @@
   ],
   [
    "SYNC",
+   "CSRTB/bundle_src/fragments/audible_alert.md"
+  ],
+  [
+   "SYNC",
+   "CSRTB/bundle_src/fragments/self_scan.md"
+  ],
+  [
+   "SYNC",
+   "CSRTB/bundle_src/fragments/self_scan_alt.md"
+  ],
+  [
+   "SYNC",
    "CSRTB/bundle_src/profiles/AGENT_TOOLING_ENGINEER.json"
   ],
   [
@@ -1590,6 +1602,10 @@
   ],
   [
    "SYNC",
+   "CSRTB/test_build_crt_science_bundle.py"
+  ],
+  [
+   "SYNC",
    "Documentation/PDF/CROSS_PORTING_GUIDE.pdf"
   ],
   [
@@ -1646,5 +1662,6 @@
   ]
  ],
  "gates_failed": 0,
- "written": 410
+ "profile": "public",
+ "written": 414
 }

@@ -3,8 +3,7 @@ name: teaching-narrative
 description: Invoke WHEN writing a NEW explanatory or teaching document whose purpose is to make a reader UNDERSTAND and be able to APPLY a concept, method, or framework — a guide, tutorial, walkthrough, explainer, or onboarding doc. Deep-teaching register: flowing expert prose on an arc (hook → what it is → why it works → the general schema), every abstraction grounded by a worked example, the anchor term repeated deliberately, the reasoning made explicit. Inverts writing-science's compress-to-cite instinct into EXPAND-to-teach while keeping its OCAR / topic-stress mechanics and writing-science's detector script (re-read through a teaching reframe). Fires on "write a tutorial/guide/explainer", "teach X so a reader can apply it", "walk through how Y works". NOT for revising a manuscript toward publication (→ writing-science), setting an expert register (→ expert-prose-style), reshaping a figure deck's story (a distinct figure-deck task, out of scope here), or recovering rationale from a corpus (→ design-rationale).
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-29). Ported from the Claude Science teaching-narrative skill (reverse port). Its small reframe kernel re-shipped as the bundled teaching_reframe.py CLI (functions verbatim; consumes writing-science's writing_detectors.py `scan --json` output — does NOT re-ship the detectors); figure-deck cross-ref genericized. S13: advisory list four→five (added pseudo_explanation).
-
+# STATUS: CURRENT (2026-07-29). Its small reframe kernel re-shipped as the bundled teaching_reframe.py CLI (functions verbatim; consumes writing-science's writing_detectors.py `scan --json` output — does NOT re-ship the detectors); figure-deck cross-ref genericized. S13: advisory list four→five (added pseudo_explanation).
 
 # teaching-narrative
 

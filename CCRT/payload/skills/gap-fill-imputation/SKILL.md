@@ -3,7 +3,7 @@ name: gap-fill-imputation
 description: Impute / gap-fill autocorrelated time series (met, flux, drivers) with brms or mgcv — CHUNK long records but predict with OVERLAPPING long tails and SPLICE (splice the overlaps rather than naive-concatenating, which gives seam-offset artifacts), tier sources (measured > filled-of-measured > modeled), and verify the filled series (native resolution / no step-doubling, diel-correct, provenance-tagged). Use when gap-filling or imputing a time series, chunking a big model fit/predict, splicing chunk predictions into a continuous series, or assembling a forcing/driver from mixed sources.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # gap-fill-imputation — chunk+splice, source tiering, verify the fill
 

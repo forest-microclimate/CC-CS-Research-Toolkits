@@ -4,7 +4,7 @@ description: Gradient-boosted trees (xgboost/lightgbm) and random forests done r
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 
-# STATUS: CURRENT (2026-07-16). Ported from the Claude Science skill (reverse port T-42).
+# STATUS: CURRENT (2026-07-16).
 
 # tree-ensembles — gradient-boosted trees & random forests done right for tabular environmental regression
 

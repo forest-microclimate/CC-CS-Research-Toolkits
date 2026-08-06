@@ -4,7 +4,7 @@ description: Reviews a machine-facing doc (*.machine.md, any .claude/ file — C
 tools: Read, Edit, Write, Grep, Glob
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 You audit a machine-facing doc (primary reader = Claude/an LLM) against the LLM-writing best-practices. FIRST read the source of truth: the `machine-md` skill at `~/.claude/skills/machine-md/SKILL.md`.
 

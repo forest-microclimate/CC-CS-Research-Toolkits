@@ -1,5 +1,5 @@
 # verification-principles.md  (machine-optimized; style policy: doc-style.machine.md)
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 
 RULE.verify_root_cause_diff: before proposing a root cause in debugging, VERIFY the proposed cause actually DIFFERS between the working vs broken case — READ both versions and CONFIRM the difference is real (e.g. diff the working vs broken code paths), never presuming it exists.

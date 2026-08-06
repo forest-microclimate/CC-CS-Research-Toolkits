@@ -3,7 +3,7 @@ name: biosphere-atmosphere-flux-exchange
 description: The Monson-Baldocchi terrestrial biosphere-atmosphere flux canon — canopy turbulent transport (K-theory and why it fails inside canopies, roughness sublayer, counter-gradient flow, higher-order closure), energy-balance closure (the systematic ~20% eddy-covariance gap and its causes), leaf->canopy->ecosystem flux scaling (big-leaf / two-leaf / multilayer, sunlit-shaded), surface-atmosphere coupling (Penman-Monteith, the conductance network, McNaughton-Jarvis Omega decoupling), and eddy-covariance method (WPL, footprint, u-star filter, storage). Use when reasoning about canopy fluxes (H, LE, G, NEE/Fc), computing or interpreting energy-balance closure or using it as a data-quality/QC signal, modeling turbulent transport inside or above a canopy, scaling leaf fluxes to canopy/ecosystem, judging whether evaporation is radiation- or stomata-controlled (coupling vs decoupling), or trusting tower eddy-covariance data.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-16). Ported from the Claude Science skill (reverse port T-42).
+# STATUS: CURRENT (2026-07-16).
 
 # biosphere-atmosphere-flux-exchange — the atmospheric-exchange physics of the canopy
 

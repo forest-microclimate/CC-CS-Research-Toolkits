@@ -3,7 +3,7 @@ name: folio
 description: Translate a machine-authored doc into a human twin and render it to PDF + docx. Invoke WHEN a dual-audience document needs a human-readable PDF — a *.machine.md that has or needs a human twin, or when the user asks for a PDF/docx of a doc. Runs a preflight tool-check that offers to install missing render tools (pandoc, LaTeX, typst, mermaid-cli, python3), an atom-preserving machine→human translation, the verified xelatex render (forces full MacTeX to dodge the TinyTeX glyph-drop), and a "Missing char" QA gate that must read 0. Also emits a .docx twin WHEN the invocation text includes "docx" (e.g. /folio <doc> docx); PDF-only otherwise.
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 
 # folio — machine.md ⇒ human.md ⇒ PDF + docx
 

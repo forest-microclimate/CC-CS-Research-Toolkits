@@ -1,5 +1,5 @@
 # refactor-invariants.machine.md  (machine-optimized; style policy: doc-style.machine.md)
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 # RULE: when a change DISSOLVES/REPLACES a core abstraction, RE-DERIVE the full invariant set under the NEW structure — REPLACE the old mental model wholesale, rather than carrying it and patching its pieces as symptoms surface.
 # ORIGIN: user, 2026-07-01 — named as the cause of some of the most frustrating + intractable slow-downs across MANY sessions/projects. Cross-project ⇒ lives at the global rules level.
@@ -15,6 +15,6 @@ TELLS (output-DETECTABLE — the only reliable triggers; abstract "think structu
 
 CHECKPOINT (run AT the refactor, or the moment a TELL fires): (1) name the OLD abstraction + what it special-cased/guaranteed; (2) name the NEW structure that replaced it; (3) for EACH old special-case / piece of machinery / invariant, ask "under the new structure, which members does this now apply to?" (usually MORE / all) and re-apply uniformly; (4) grep the old-currency variable for residual gates.
 
-CAVEAT (LLM limits): no reliable introspection or self-modification ⇒ this rule REDUCES (not eliminates) recurrence, and only if it is LOADED and a TELL actually fires. Hence the TELLS are phrased as detectable output-states, not exhortations.
+CAVEAT: standing-mandate's CANONICAL CAVEAT (LLM limits) applies — reduces-not-eliminates, here of RECURRENCE, and only when LOADED + a TELL fires. Added premise here: no reliable self-modification either.
 
 REF: verification-principles.md (verify-don't-assume); doc-style.machine.md (style). Symptom-level companion: handle an edge case by UNIFYING with the sibling mechanism, not a parallel tuned knob — a mirror-knob or a value-bracket search = a structural question mis-framed as tuning.

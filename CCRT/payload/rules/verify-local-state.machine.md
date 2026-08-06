@@ -1,5 +1,5 @@
 # verify-local-state.machine.md  (machine-optimized; style policy: doc-style.machine.md)
-# STATUS: CURRENT (2026-07-11). Auto-stamped by doc-status.sh; refine the note on next edit.
+# STATUS: CURRENT (2026-07-11).
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 # RULE: a locally + CHEAPLY verifiable fact (file · data · process-status · count · timestamp) => state it / act on it from the FRESH source reading — never an assumption, a stale earlier reading, or an inference from an indirect proxy. Verify before asserting; RE-verify (≥2 agreeing sources) before an irreversible act. CRITICAL recurring instance (minimize): on RESUME, confirm a process's running-status from a BROAD ps/pgrep + its OWN growing output files before ever concluding "not running".
 # ORIGIN: user, 2026-07-04 — after a Claude Code resume, a healthy ~6 h Stan fit's progress was discarded: a STALE log + a single `pgrep`=0 + a file-SIZE guess were each trusted as fact instead of cross-checked against the process table + the run's actual CSV outputs. Cross-project => lives at the global rules level.
@@ -22,6 +22,6 @@ RULE.confirm_running_before_negative (CRITICAL — the recurring instance to min
 
 WHY: these facts are the CHEAPEST to verify and among the COSTLIEST to get wrong — a false "not running / dead" invites a destructive re-run that discards good work; a false count / progress mis-reports the state to the user. Root failure = trusting ONE indirect or stale signal as ground truth; fix = read the DIRECT source, and require AGREEMENT across INDEPENDENT sources before any irreversible act.
 
-CAVEAT (LLM limits): no reliable introspection ⇒ this REDUCES (not eliminates) the failure, and only when LOADED + a trigger fires — hence the triggers are phrased as detectable moments (about-to-state-a-local-fact · about-to-infer-from-a-proxy · about-to-do-something-irreversible · about-to-say-"not-running"), not "be more careful".
+CAVEAT: standing-mandate's CANONICAL CAVEAT (LLM limits) applies — reduces-not-eliminates, and only when LOADED + a trigger fires.
 
 REF: verification-principles.md (verify-don't-assume · say-unchecked · cite-or-hedge — THIS is its local-state / process-status specialization) · reproduce-before-fixing.machine.md (falsifier-first: reproduce at baseline before building) · doc-style.machine.md (style).

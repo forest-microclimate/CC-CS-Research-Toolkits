@@ -4,7 +4,7 @@ description: Fuse a mechanism with ML so the learned component can NEVER breach 
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 
-# STATUS: CURRENT (2026-07-16). Ported from the Claude Science skill (reverse port T-42).
+# STATUS: CURRENT (2026-07-16).
 
 # physics-informed-ml — mechanism + ML without ever breaching the budget
 

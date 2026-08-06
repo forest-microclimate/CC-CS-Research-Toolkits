@@ -4,7 +4,7 @@ description: Invoke WHEN the task is to recover the IMPLICIT rationale, design p
 ---
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 
-# STATUS: CURRENT (2026-07-14). Ported from the Claude Science design-rationale skill (reverse port). Kernel re-shipped as the bundled `rationale_ledger.py` CLI (validate/render); the auto-load `## The ledger` section rewritten to explicit `python3` invocation.
+# STATUS: CURRENT (2026-07-14). Reverse-ported from Claude Science.
 
 # design-rationale
 
