@@ -57,8 +57,8 @@ and [`CSRTB/README.md`](CSRTB/README.md) orients you first.
 
 Counted from the trees in this repository, not copied from prose:
 
-- **CCRT** — **46 skills** and **18 agents**, plus 16 always-on rules and 4 slash commands.
-  (`ls payload/skills` returns 46 directories, each holding a `SKILL.md`; `payload/agents` holds 18
+- **CCRT** — **47 skills** and **18 agents**, plus 16 always-on rules and 4 slash commands.
+  (`ls payload/skills` returns 47 directories, each holding a `SKILL.md`; `payload/agents` holds 18
   `.md` files.)
 - **CSRTB** — **52 skills** and **18 profiles**, of which **19 skills carry a `kernel.py` sidecar**
   of fail-closed gate functions. (All three read from the built `crt_science_bundle.json`, whose

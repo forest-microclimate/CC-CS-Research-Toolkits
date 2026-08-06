@@ -60,5 +60,5 @@ Each guide is a triple: an authoritative machine root, its derived human transla
 - For how this toolkit relates to its Claude Science twin, see
   [`../Documentation/`](../Documentation/).
 
-Counted from `payload/` in this repository: **46 skills** (one directory each, every one holding a
+Counted from `payload/` in this repository: **47 skills** (one directory each, every one holding a
 `SKILL.md`), **18 agents**, 16 always-on rules, and 4 slash commands.
