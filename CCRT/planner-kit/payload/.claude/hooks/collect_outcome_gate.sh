@@ -20,9 +20,19 @@
 # SIGNAL (stated plainly because it is the load-bearing assumption): "this turn saw
 #   subagent results" is read from the TRANSCRIPT, restricted to the window after the last
 #   genuine user message. Three independent tells, any one sufficient — a `tool_use` block
-#   named Task, an `isSidechain` record, or the same pair found by raw-line match when the
+#   named Task|Agent, an `isSidechain` record, or the same pair found by raw-line match when the
 #   structured shape differs. No tell => silent. The gate never blocks on a turn it cannot
 #   read.
+#
+# VERDICT CHECK (G4, Z8 — layered AFTER the outcome check): when the same segment holds a
+#   Task|Agent tool_use whose input.subagent_type is fable-executor, it must ALSO hold a serving
+#   certification — /FAITHFUL|SWAPPED@|UNDETERMINED/ or a serving-stamp receipt line
+#   ("model":"claude-…), searched in DECODED content text only, so a transcript record's
+#   own model field can never read as a receipt and the user's own prompt (which the
+#   segment strictly excludes) can never certify a child it merely mentions. Absent => the
+#   SAME one-shot block, naming the ready-to-run fable_watchdog command with the child
+#   transcript path substituted from the launch result's `output_file:` line when present.
+#   stop_hook_active covers BOTH checks: at most one block per stop sequence, never two.
 #
 # SWITCH: PLANNER_KIT_HOOKS=off silences this hook.
 set -eo pipefail   # NOT set -u — maybe-unset vars are guarded with ${x:-}
@@ -122,7 +132,9 @@ window = records[start:]
 
 # ---------- did this turn collect subagent results? -------------------------------
 RAW_TOOLUSE = re.compile(r'"type"\s*:\s*"tool_use"')
-RAW_TASK = re.compile(r'"name"\s*:\s*"Task"')
+# Task|Agent compat: CC renamed the launcher tool to Agent (measured 2026-08-07: Agent-named
+# tool_use records slipped the Task-only detection); match BOTH so a flip-back survives.
+RAW_TASK = re.compile(r'"name"\s*:\s*"(?:Task|Agent)"')
 RAW_SIDE = re.compile(r'"isSidechain"\s*:\s*true')
 
 saw = False
@@ -131,7 +143,7 @@ for raw, r in window:
         saw = True
         break
     for b in blocks(r):
-        if isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") == "Task":
+        if isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") in ("Task", "Agent"):
             saw = True
             break
     if saw:
@@ -155,14 +167,83 @@ if not final.strip():
 
 OUTCOME = re.compile(r"(?<![A-Za-z0-9])(CONTINUE|RE-ROUTE|REROUTE|FIX-FIRST|ABORT|"
                      r"GOAL-MET|ADAPT)(?![A-Za-z0-9])", re.I)
-if OUTCOME.search(final):
+if not OUTCOME.search(final):
+    print(json.dumps({"decision": "block", "reason": (
+        "This turn collected subagent results but the reply names no COLLECT outcome. Name "
+        "exactly one — CONTINUE | RE-ROUTE | FIX-FIRST | ABORT | GOAL-MET | ADAPT — with the "
+        "receipts you spot-checked, then stop. An unnamed outcome defaults silently to "
+        "CONTINUE, which is how a plan outlives the evidence that justified it.")}))
     sys.exit(0)
 
+# ---------- G4 VERDICT CHECK: a fable-executor launch demands a certification -----
+# Segment = strictly AFTER the last genuine user message (window[0] when one exists),
+# so the user's own prompt text cannot certify a child it merely talks about.
+vseg = window[1:] if window and role_of(window[0][1]) == "user" else window
+
+RAW_FABLE = re.compile(r'"subagent_type"\s*:\s*\\?"fable-executor')
+launched = False
+for raw, r in vseg:
+    for b in blocks(r):
+        if (isinstance(b, dict) and b.get("type") == "tool_use"
+                and b.get("name") in ("Task", "Agent")
+                and isinstance(b.get("input"), dict)
+                and b["input"].get("subagent_type") == "fable-executor"):
+            launched = True
+            break
+    if launched:
+        break
+    if RAW_TOOLUSE.search(raw) and RAW_TASK.search(raw) and RAW_FABLE.search(raw):
+        launched = True
+        break
+
+if not launched:
+    sys.exit(0)
+
+
+def deep_texts(x, acc, depth=0):
+    """Every DECODED content string in a record: text blocks, string content, nested
+    tool_result content. Deliberately NOT the record's own metadata fields (model,
+    id, …) and NOT tool_use inputs — a serving-stamp receipt must come from content
+    someone actually put in front of the coordinator, not from the transcript's own
+    envelope (whose every assistant record carries a "model" field)."""
+    if depth > 8:
+        return
+    if isinstance(x, dict):
+        for k, v in x.items():
+            if k in ("text", "content") and isinstance(v, str):
+                acc.append(v)
+            elif k != "input":
+                deep_texts(v, acc, depth + 1)
+    elif isinstance(x, list):
+        for v in x:
+            deep_texts(v, acc, depth + 1)
+
+
+texts = []
+for raw, r in vseg:
+    if isinstance(r, dict):
+        deep_texts(r, texts)
+    else:
+        texts.append(raw)   # unparseable line: raw fallback (errs toward fail-open)
+seg_text = "\n".join(texts)
+
+CERT = re.compile(r'FAITHFUL|SWAPPED@|UNDETERMINED|"model":"claude-')
+if CERT.search(seg_text):
+    sys.exit(0)
+
+path = ""
+for m in re.finditer(r"output_file:\s*([^\n\r]+)", seg_text):
+    path = m.group(1).strip().strip("`\"'")   # last launch result wins
+cmd_path = ("'" + path.replace("'", "'\\''") + "'") if path \
+    else "'<the child transcript path from the launch result>'"
 print(json.dumps({"decision": "block", "reason": (
-    "This turn collected subagent results but the reply names no COLLECT outcome. Name "
-    "exactly one — CONTINUE | RE-ROUTE | FIX-FIRST | ABORT | GOAL-MET | ADAPT — with the "
-    "receipts you spot-checked, then stop. An unnamed outcome defaults silently to "
-    "CONTINUE, which is how a plan outlives the evidence that justified it.")}))
+    "This turn launched a fable-executor child but the segment carries no serving "
+    "certification — no FAITHFUL / SWAPPED@k / UNDETERMINED verdict and no serving-stamp "
+    "receipt. A fable request can be silently substituted at serving time; certify what "
+    "SERVED before stopping. Run: python3 .claude/skills/model-verification/"
+    "fable_watchdog.py " + cmd_path + " --watch (FAITHFUL(0)=certified · SWAPPED@k(1)="
+    "relaunch or proceed knowingly, log it · UNDETERMINED(2)=investigate), then state the "
+    "verdict — or quote the stamps grep — in your reply, then stop.")}))
 PYEOF
 rc=$?
 set -e
@@ -179,7 +260,7 @@ fi
 if [ -n "${verdict:-}" ]; then
   case "$verdict" in
     \{*\}) printf '%s\n' "$verdict"
-           _log "nudge emitted (outcome token absent after a subagent collect)" ;;
+           _log "nudge emitted (collect-outcome or fable-verdict check)" ;;
     *)     _log "INDETERMINATE: gate stdout was not a JSON object => fail-open" ;;
   esac
 fi

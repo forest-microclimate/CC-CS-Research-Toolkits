@@ -20,7 +20,7 @@
 #
 # TWO MODES:
 #   DEFAULT (minimal) — install ONLY the two front-door files at the project root:
-#       (1) root CLAUDE.md  and  (2) STRUCTURE_RULES.md — plus the two advisory
+#       (1) root CLAUDE.md  and  (2) STRUCTURE_RULES.md — plus the four
 #       workflow hooks + their .claude/settings.json registration, and the model-routing set
 #       (two executor agents + the model-verification skill; see BOTH MODES below).
 #     The folder tree is NOT pre-created; the agent materializes each folder ON DEMAND per
@@ -40,10 +40,11 @@
 #       (plain `mv`, content preserved) — then seed STRUCTURE_RULES.md (only-if-absent), recording
 #       THIS kit's absolute path into its SEEDS section so an on-demand materialization can find
 #       the seed templates later. BOTH names present => refuse up front, change nothing.
-#   Install the two advisory workflow hooks into .claude/hooks/ (mode 755) and register them in
+#   Install the four workflow hooks into .claude/hooks/ (mode 755) and register them in
 #       .claude/settings.json: seeded when absent, else DEEP-MERGED via lib/merge_settings.py so
 #       your own settings and any foreign hook survive intact (a dated backup is kept before the
-#       first merge). Both hooks advise only — neither ever refuses an action.
+#       first merge). brief_gate + collect_outcome_gate + fable-launch-scaffold advise only;
+#       fable-dispatch-gate is the ONE deny-capable gate (CRT_MODE off/observe silences it).
 #   Seed the MODEL-ROUTING capability set (v1.4/K10, only-if-absent): .claude/agents/
 #       {fable-executor,opus5-executor}.md (the two constructed model routes) and
 #       .claude/skills/model-verification/ (the serving-stamp audit skill + instrument) — so a
@@ -68,7 +69,7 @@
 set -u
 set -o pipefail
 
-KIT_VERSION="v1.6"
+KIT_VERSION="v1.7"
 
 # The installed folder contract's file name, and the pre-v1.5 name it migrates FROM. Kept as two
 # variables so the name lives in ONE place: every seed, migration, guard, summary line and closing
@@ -99,8 +100,8 @@ usage() {
   cat <<EOF
 planner-kit installer ($KIT_VERSION)
 Usage: cd /your/project && bash "$KIT_DIR/install.sh" [--full] [--upgrade-rules] [--dry-run]
-  (default)   MINIMAL install: root CLAUDE.md + $STRUCT_DOC_NAME, plus the two
-              advisory workflow hooks + their .claude/settings.json registration, and the
+  (default)   MINIMAL install: root CLAUDE.md + $STRUCT_DOC_NAME, plus the four
+              workflow hooks + their .claude/settings.json registration, and the
               model-routing set (.claude/agents/ executors + .claude/skills/model-verification).
               The folder tree is materialized ON DEMAND per $STRUCT_DOC_NAME
               (a folder's absence = not yet needed, never an error).
@@ -336,7 +337,7 @@ seed_structure_doc() {  # seed STRUCTURE_RULES.md, recording THIS kit's abs path
 }
 
 # ---- hooks + settings (BOTH modes; default-on) ------------------------------
-HOOK_NAMES="brief_gate.sh collect_outcome_gate.sh"     # fixed names, no spaces => word-split is safe
+HOOK_NAMES="brief_gate.sh collect_outcome_gate.sh fable-dispatch-gate.sh fable-launch-scaffold.sh plan-state-inject.sh"   # fixed names, no spaces => word-split is safe
 HOOKS_SRC_DIR="$PAYLOAD_DIR/.claude/hooks"
 SETTINGS_SRC="$PAYLOAD_DIR/.claude/settings.json"
 SETTINGS_DST="$TARGET_DIR/.claude/settings.json"
@@ -684,7 +685,7 @@ elif [ "$FULL" = 1 ]; then
   printf 'Re-running is safe: seeds skip existing files; CLAUDE.md is a no-op once the marker is present.\n'
 else
   printf '\ndone (minimal). Root files: %s/CLAUDE.md + %s/%s (pointer stub at .claude/CLAUDE.md).\n' "$TARGET_DIR" "$TARGET_DIR" "$STRUCT_DOC_NAME"
-  printf 'Advisory hooks live in .claude/hooks/ and are registered in .claude/settings.json; PLANNER_KIT_HOOKS=off silences them.\n'
+  printf 'Workflow hooks live in .claude/hooks/ and are registered in .claude/settings.json; PLANNER_KIT_HOOKS=off silences the advisory ones, CRT_MODE=off the deny gate.\n'
   printf 'The folder tree is materialized on demand per %s. Want the classic tree up front? Re-run with --full.\n' "$STRUCT_DOC_NAME"
   printf 'Re-running is safe: STRUCTURE_RULES + seeds skip existing files; CLAUDE.md is a no-op once the marker is present.\n'
 fi

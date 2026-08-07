@@ -1,13 +1,31 @@
 {
-  "//": "Advisory workflow backstops. brief_gate.sh (PreToolUse/Task) names any unfilled brief slot before a launch and never denies; collect_outcome_gate.sh (Stop) asks once for the COLLECT outcome when a turn that collected subagent results names none. Both fail open on any internal error. Set PLANNER_KIT_HOOKS=off to silence them. Keep each command string byte-identical across edits — the merge dedups by command.",
+  "//": "Workflow backstops. brief_gate.sh (PreToolUse/Task|Agent) names any unfilled brief slot before a launch and never denies; fable-dispatch-gate.sh (PreToolUse/Task|Agent) is the ONE deny-capable gate — it blocks a fable/opus5-tier launch that names no dev/briefs brief (and no WARMUP opening), or whose brief lacks a ROLE line, a persona pointer, or (fable tier) a WARMUP slot; CRT_MODE off/observe silences it. fable-launch-scaffold.sh (PostToolUse/Task|Agent) prints the ready-to-run fable_watchdog command to stderr when a launch result names an output_file. collect_outcome_gate.sh (Stop) asks once for the COLLECT outcome when a turn that collected subagent results names none, and (G4 verdict check) blocks once when the turn launched a fable-executor child whose segment carries no certification token (FAITHFUL/SWAPPED@/UNDETERMINED or a serving-stamp receipt line), naming the ready-to-run fable_watchdog command — stop_hook_active one-shots both checks. plan-state-inject.sh (SessionStart: startup, resume, compact) injects ~2 lines of ACTIVE-plan state read from plans/PLAN_LEDGER.machine.md, silent when no row is ACTIVE. All fail open on any internal error. PLANNER_KIT_HOOKS=off silences the advisory four. Keep each command string byte-identical across edits — the merge dedups by command. Task|Agent matchers: CC renamed the subagent-launcher tool to Agent (measured 2026-08-07); both names stay registered so the gates fire on current CC and survive a vendor flip-back.",
+  "//subagent-qa-adopter": "ADOPTER row (kit-fragment-only): subagent_qa_gate.sh (SubagentStop) is the completion-telemetry hook — one jsonl row per child completion, clean rows included, plus the qa4 model-substitution flag. It is INSTALLED BY THE CCRT into $HOME/.claude/hooks, so this fragment registers it at that CCRT-installed path to give every kit-adopting project completion telemetry. Deliberately NOT mirrored into the writing-tools dev workspace settings: that workspace registers its OWN tree-local copy via ${CLAUDE_PROJECT_DIR:-.}/.claude/hooks at a DIFFERENT command string, and adding this $HOME row there too would double-fire the hook on every child completion (the merge dedups by command, and these are two different commands).",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Task",
+        "matcher": "Task|Agent",
         "hooks": [
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/brief_gate.sh\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/fable-dispatch-gate.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Task|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/fable-launch-scaffold.sh\"",
             "timeout": 10
           }
         ]
@@ -21,6 +39,50 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/collect_outcome_gate.sh\"",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/plan-state-inject.sh\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/plan-state-inject.sh\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/plan-state-inject.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/subagent_qa_gate.sh\"",
+            "timeout": 20
           }
         ]
       }

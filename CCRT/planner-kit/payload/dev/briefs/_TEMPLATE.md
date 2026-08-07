@@ -11,6 +11,7 @@ SCOPE RULE [element 6] (verbatim): <paste RULE.workspace_scope's boundary senten
 
 ## 1. ASSIGNMENT
 <INTENT first — the larger task this serves and what the output enables (vendor-stated: fable performs better knowing intent) — then the task, and the DONE-condition a reader can check against an artifact>
+<FABLE-TIER ONLY — VERIFIED-LAUNCH warmup (fixture-measured 2026-08-06): open the task with "WARMUP first: read these 4 small files, ONE Read call each: <4 quoted small paths>" — persona/skill Read-pointers ARE the warmup where the brief carries them (zero throwaway calls) — so serving is certifiable by ~call 5; the coordinator runs `.claude/skills/model-verification/fable_watchdog.py --watch` on the child transcript and relaunches on SWAPPED. Delete this slot for non-fable children.>
 
 ## 2. READ-PATHS (self-service: the child reads these ITSELF, never only this brief's précis)
 - "<quoted path>" — <what this source decides; where two could disagree, name the authoritative one>

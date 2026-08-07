@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com>
 # plan-routing-gate.sh — PLAN-TIME routing-block enforcement (PreToolUse, matcher=ExitPlanMode).
-# STATUS: CURRENT (2026-08-04). A2_ROUTING_SCHEMA lint checks L1-L4, CC half.
+# STATUS: CURRENT (2026-08-07). A2_ROUTING_SCHEMA lint checks L1-L4 + the Z7 L7/L8 extensions
+#   (L7 owner-completeness, L8 multi-stage completeness), CC half; Z7b: extraction path 3
+#   + the compound executor form (HARNESS CHANGE note below).
 #
 # ─── L4 REWORK (2026-08-04, O-series: opus-5 as CONSTRAINED SUPERVISED USE) ────────
 #   claude-opus-5 is no longer barred outright on the CC side; it is legal in exactly one
@@ -25,10 +27,24 @@
 #       model field — and the `opus`/`opusplan` ALIAS regexes are untouched: an alias
 #       re-resolves silently, so it is never a sanctioned route at any scope.
 #
+# ─── L7/L8 EXTENSION (2026-08-06, Z7: close the SILENT routing omissions) ──────────
+#   Recorded other-session failures: plans routed delegate tracks with NO persona/skill
+#   assignment, and under-planned multi-stage waves. Both were LEGAL here because only
+#   `executor` was hard-required among the routing fields. Two additions, both
+#   MINIMUM-EXPLICITNESS checks (they force the decision to be RECORDED, not to be wise):
+#   L7 owner-completeness — a `delegate:` track's `owner` must say MORE than the executor
+#     tag (the persona/skill assignment, a qualifier), or carry the explicit
+#     "no specialist fits" / "skill-only" fallback (delegation-planning Part A vocabulary).
+#   L8 multi-stage completeness — a track declaring a cascade topology (anything beyond
+#     single-thread/n/a) must enumerate `steps` (>=2 non-empty stage strings; a
+#     markdown-table cell may carry the JSON array literally), and a plan routing >1
+#     delegate track must carry a Waves/ordering section (or describe the ordering with
+#     the word "wave").
+#
 # WHAT: when the agent is about to present a plan for approval (ExitPlanMode), lint the
 #   plan's Delegation & Routing block and DENY the tool call when it is missing or
 #   malformed, so the model must fix the plan and retry BEFORE the user ever sees it.
-#   Enforces A2_ROUTING_SCHEMA.machine.md lint checks L1-L4.
+#   Enforces A2_ROUTING_SCHEMA.machine.md lint checks L1-L4 + the Z7 L7/L8 extensions above.
 #   (2026-07-27 reviewer pass, mirroring delegation-planning/kernel.py + lib/verify_models.sh:
 #    L3 also catches BODY-TEXT theater — a delegate:<real-agent> track whose task/owner text
 #    says the lead runs it; L4 denies opus[1m] and opusplan (not just bare opus) and tier-checks
@@ -53,6 +69,7 @@
 #   binary these two are "injected by normalizeToolInput from disk" — they are NOT model
 #   arguments. CONSEQUENCE: when no plan exists on disk, tool_input is literally {} (also
 #   measured). That is the documented fail-open skip below, not a lint failure.
+#   HARNESS CHANGE (2026-08-07, Z7b): CURRENT harnesses send NEITHER plan NOR planFilePath in tool_input (Z7-measured — the gate was failing OPEN on every real approval), so EXTRACTION PATH 3 below falls back to the NEWEST *.md under ${CRT_PLANS_DIR:-$HOME/.claude/plans} (env override for testability), accepted ONLY when its mtime is within the last 30 min; any miss (no dir / no file / too old / read error) => the same fail-open, quietly logged.
 #
 # ─── SUBAGENT DETECTION (measured, same probe) ────────────────────────────────────
 #   A subagent's PreToolUse payload carries TWO EXTRA top-level keys the main agent's
@@ -122,7 +139,7 @@ _outf="${TMPDIR:-/tmp}/prg_out.$$"
 #   Redirect to a temp file and read it back — the same shape claim-verify-guard.sh uses.
 set +e
 python3 - "$input" <<'PYEOF' >"$_outf" 2>"$_errf"
-import json, re, sys
+import glob, json, os, re, sys, time
 
 # ---------- fail-open guards: anything unexpected => silent pass ----------------
 try:
@@ -148,6 +165,7 @@ if not isinstance(ti, dict):
 
 # ---------- get the plan text: tool_input.plan, else the plan FILE --------------
 plan = ti.get("plan")
+_no_path_given = False
 if not isinstance(plan, str) or not plan.strip():
     plan = ""
     p = ti.get("planFilePath") or ti.get("plan_file_path")
@@ -157,6 +175,54 @@ if not isinstance(plan, str) or not plan.strip():
                 plan = fh.read()
         except Exception:
             plan = ""
+    else:
+        _no_path_given = True
+
+
+def _qlog(msg):
+    """Path-3 quiet log: same file + line format as the bash _log(), never fatal."""
+    try:
+        d = os.path.join(os.environ.get("CLAUDE_HOME")
+                         or os.path.join(os.path.expanduser("~"), ".claude"), "logs")
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, "plan-routing-gate.log"), "a", encoding="utf-8") as fh:
+            fh.write("%s plan-routing-gate: %s\n"
+                     % (time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), msg))
+    except Exception:
+        pass
+
+
+# ---------- EXTRACTION PATH 3 (Z7b, 2026-08-07): newest fresh plans-dir file -----
+# The current harness's ExitPlanMode carries NO plan content in tool_input (neither
+# `plan` nor `planFilePath` — Z7-measured), so paths 1-2 both come up empty and the
+# gate silently fail-opened on every real approval. When BOTH fields are absent/empty
+# (NOT when a named plan file merely failed to read), fall back to the plans dir
+# itself: ${CRT_PLANS_DIR:-$HOME/.claude/plans} (the env override exists FOR
+# TESTABILITY), glob *.md, pick the NEWEST mtime, and accept it as the plan text
+# ONLY if that mtime is within the last 30 minutes — a plan file is always edited
+# moments before ExitPlanMode, and linting a stale file against an unrelated
+# approval would be worse than fail-open. Any miss (no dir / no file / too old /
+# read error) => today's fail-open behavior, quietly logged via _qlog above.
+if not plan.strip() and _no_path_given:
+    try:
+        pdir = (os.environ.get("CRT_PLANS_DIR")
+                or os.path.join(os.path.expanduser("~"), ".claude", "plans"))
+        cands = glob.glob(os.path.join(pdir, "*.md"))
+        if not cands:
+            _qlog("path3: no plan files under %s => fail-open" % pdir)
+        else:
+            newest = max(cands, key=os.path.getmtime)
+            age = time.time() - os.path.getmtime(newest)
+            if age > 1800:
+                _qlog("path3: newest plan %s is stale (%.0fs > 1800s) => fail-open"
+                      % (os.path.basename(newest), age))
+            else:
+                with open(newest, encoding="utf-8", errors="replace") as fh:
+                    plan = fh.read()
+                _qlog("path3: linting %s (age %.0fs)" % (os.path.basename(newest), age))
+    except Exception as exc:
+        _qlog("path3: error (%s) => fail-open" % exc)
+
 # Plan text absent ENTIRELY => fail-open by contract. This is the real, measured
 # no-plan-on-disk case (tool_input == {}), not a lint violation to punish.
 if not plan.strip():
@@ -211,6 +277,17 @@ VALID_TIERS = ("T1", "T1_hardest", "T1_supervised", "T2", "T3", "T4")
 
 # Executors that may run a barred-outside-this-shape model, and therefore require the watch.
 SUPERVISED_EXECUTORS = ("opus5-executor",)
+
+# L7/L8 shared vocabulary (Z7, 2026-08-06). Owner placeholders read as ABSENT; the two
+# explicit fallback forms come from delegation-planning Part A ("main agent, no specialist
+# fits" / "skill-only, no delegation"). Topology tokens are compared after norm_name, and
+# "-" / "" read as absent (the markdown-table empty-cell idiom), so only a POSITIVELY
+# declared cascade topology triggers the steps requirement.
+OWNER_PLACEHOLDERS = {"tbd", "?", "-"}
+OWNER_EXPLICIT_OK = re.compile(r"no\s+specialist\s+fits|skill[\s_-]?only", re.I)
+NON_CASCADE_TOPOLOGIES = {"single-thread", "n/a", "-", ""}
+WAVES_SECTION = re.compile(r"^##\s+(?:Waves\b|.*\bOrder\b)", re.M | re.I)
+WAVE_WORD = re.compile(r"\bwaves?\b", re.I)
 
 
 def supervision_marker(t):
@@ -322,7 +399,10 @@ elif len(all_tracks) == 0 and not fails:
                  "tracks array is a visible failure, not a pass.")
 
 # ---------- L2 / L3 / L4 over the declared tracks -------------------------------
-EXEC_OK = re.compile(r"^(MAIN-AGENT|CODE:.+|delegate:.+)$", re.I)
+# Z7b (2026-08-07): ALSO accepts the compound house form `MAIN-AGENT + CODE:<cmd>`
+# (the lead runs it by running code) — the historical plan corpus routes coordinator
+# code steps that way. Same case-handling (re.I) as the original grammar.
+EXEC_OK = re.compile(r"^(MAIN-AGENT( \+ CODE:.+)?|CODE:.+|delegate:.+)$", re.I)
 # Self-aliases, compared AFTER norm_name (so main_agent / "main agent" fold to main-agent).
 # Mirrors kernel.SELF_TOKENS {main-agent, mainagent, main, self, myself, me, lead,
 # lead-agent, the-main-agent} PLUS the CC-hook extras kept from the prior set
@@ -332,6 +412,8 @@ EXEC_OK = re.compile(r"^(MAIN-AGENT|CODE:.+|delegate:.+)$", re.I)
 # this gate treats planner as a valid non-self target rather than false-block it.
 SELF_NAMES = {"main-agent", "mainagent", "main", "self", "myself", "me",
               "lead", "lead-agent", "the-main-agent", "orchestrator", "main-claude"}
+
+n_delegate = 0   # delegate-executor track census for the plan-level L8 check (Z7)
 
 for i, t in enumerate(all_tracks):
     if not isinstance(t, dict):
@@ -381,6 +463,29 @@ for i, t in enumerate(all_tracks):
                     "\"supervision\": \"planner-watch\") to this track, or route the work to an "
                     "unsupervised agent." % (tid, ex))
 
+        # L7 owner-completeness (Z7, 2026-08-06): a delegate track must RECORD the routing
+        # decision on the track. An owner that is missing/placeholder, or that only restates
+        # the executor tag, means the persona/skill assignment was never made (or never
+        # written down) — the recorded silent-routing-omission defect.
+        n_delegate += 1
+        owner_txt = norm_text(t.get("owner")).strip("`").strip()
+        if not owner_txt or owner_txt.lower() in OWNER_PLACEHOLDERS:
+            fails.append(
+                "L7 owner-completeness: track %s routes %r but names NO usable `owner` "
+                "(missing/empty/placeholder). The owner field carries the ROUTING DECISION — "
+                "name the specialist persona + skill this child carries (e.g. \"<specialist> "
+                "persona + <skill> on %s\"), or state the explicit fallback (\"main agent, no "
+                "specialist fits\" | \"skill-only, no delegation\")."
+                % (tid, ex, ex.split(":", 1)[1].strip()))
+        elif (norm_name(owner_txt) in (name, norm_name(ex))
+              and not OWNER_EXPLICIT_OK.search(owner_txt)):
+            fails.append(
+                "L7 owner-completeness: track %s sets owner=%r, which only restates the "
+                "executor tag %r — the persona/skill assignment was never recorded. Say MORE "
+                "than the tag (e.g. \"<specialist> persona (Read-pointer) on %s\"), or use "
+                "the explicit \"no specialist fits\" / \"skill-only\" fallback."
+                % (tid, owner_txt, ex, name))
+
     # L4, per-track: a banned model id / alias in a model or tier field (verify_models.sh
     # classify() semantics), AND model_tier must be a known tier token when present.
     for k in ("model", "model_tier", "tier", "model_id"):
@@ -403,6 +508,36 @@ for i, t in enumerate(all_tracks):
                          "so claiming it without the watch is the defect it exists to prevent: "
                          "add \"supervised\": true (or \"supervision\": \"planner-watch\")."
                          % tid)
+
+    # L8 multi-stage completeness, per-track (Z7, 2026-08-06): a POSITIVELY declared
+    # cascade topology must enumerate its stages. A markdown-table cell may carry the
+    # JSON steps array literally (parsed here); anything else non-listlike fails.
+    topo = t.get("topology")
+    if isinstance(topo, str) and norm_name(topo.strip().strip("`")) not in NON_CASCADE_TOPOLOGIES:
+        steps = t.get("steps")
+        if isinstance(steps, str):
+            try:
+                steps = json.loads(steps.strip().strip("`"))
+            except Exception:
+                pass
+        if not (isinstance(steps, list) and len(steps) >= 2
+                and all(isinstance(s, str) and s.strip() for s in steps)):
+            fails.append(
+                "L8 multi-stage: track %s declares topology=%r but carries no usable `steps` "
+                "array. A multi-stage track must enumerate its stages — add \"steps\": "
+                "[\"<stage 1>\", \"<stage 2>\", ...] (>=2 non-empty stage descriptions), or "
+                "set topology to single-thread if it is really one piece."
+                % (tid, str(topo).strip()))
+
+# L8 multi-stage completeness, plan-level (Z7, 2026-08-06): more than one delegated track
+# => the plan must ORDER them. Minimum explicitness: a `## Waves` / `## <...> Order`
+# section, or the word "wave" where the ordering is described in prose. Its absence is the
+# recorded under-planned-multi-stage-wave defect.
+if n_delegate > 1 and not (WAVES_SECTION.search(plan) or WAVE_WORD.search(plan)):
+    fails.append(
+        "L8 multi-stage: this plan routes %d delegate tracks but carries NO wave/ordering "
+        "section. State the execution order — add a `## Waves` (or `## <...> Order`) "
+        "section saying which tracks run in which wave." % n_delegate)
 
 # L4, block-wide backstop — REWORKED 2026-08-04 (O-series). Two surfaces, deliberately
 # NARROWER than the old bare-substring scan, which could not tell a raw model assignment
@@ -454,7 +589,8 @@ marker = "plan_lint tracks=%d verdict=FAIL(%d)" % (n, len(fails))
 reason = ["BLOCKED by plan-routing-gate %s" % marker, ""]
 if form:
     reason.append("Found: %s." % form)
-reason.append("This plan does not satisfy A2_ROUTING_SCHEMA lint checks L1-L4:")
+reason.append("This plan does not satisfy A2_ROUTING_SCHEMA lint checks L1-L4 (+ the Z7 "
+              "L7/L8 extensions):")
 reason += ["  - %s" % f for f in fails]
 reason += [
     "",
@@ -468,6 +604,11 @@ reason += [
     "A supervised opus-5 track adds the watch to that shape and names NO model field:",
     '  {"id":"t2","task":"...","executor":"delegate:opus5-executor","supervised":true,',
     '   "model_tier":"T1_supervised","effort":"high", ...}',
+    "A delegate track's `owner` says MORE than the executor tag (the persona/skill "
+    "assignment), or carries the explicit \"no specialist fits\" / \"skill-only\". A "
+    "multi-stage track (topology != single-thread) also enumerates its stages:",
+    '  {"id":"t3","task":"...","executor":"delegate:<agent>","topology":"parallel-wave",',
+    '   "steps":["<stage 1>","<stage 2>"], ...}',
     "Do not delete the block or rename the fence to dodge this check.",
 ]
 print(json.dumps({"hookSpecificOutput": {

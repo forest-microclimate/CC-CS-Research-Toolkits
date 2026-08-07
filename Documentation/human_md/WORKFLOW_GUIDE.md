@@ -194,6 +194,10 @@ element becomes an object someone can point at. Each non-trivial brief is then p
 `dev/briefs/` before launch, so a crashed session re-launches from the file instead of from
 a lost conversation.
 
+Launch adds one convention of its own: a subagent bound for the top model opens with a few
+pointed warmup reads, and a watchdog certifies which model is actually serving it before
+the planner banks anything on the run.
+
 The diamond has six exits, and they are the planner's entire repertoire of moves. Reaching it
 takes two acts, not one: the planner first spot-checks the receipts in each report against
 the artifacts they name, because a claim in a report is not the artifact, and only then asks
@@ -432,6 +436,29 @@ tasks that need the full toolset or its long-horizon charter. Skills reach it as
 brief names the skill file and the subagent reads it. The route is a measured way around an
 open bug rather than a guarantee, so the planner still checks the stamps.
 
+**That check no longer waits for the end of a run.** When the substitution happens at all,
+it happens at a fixed and early moment, and the planner uses that fact. It opens a top-tier
+subagent's brief with a few small pointed reads, a persona file, a skill file, reads that
+double as real working context, so that by about its fifth call the subagent's own
+transcript already proves which model is serving it. A shipped watchdog,
+`.claude/skills/model-verification/fable_watchdog.py`, installed with the kit, watches that
+transcript live and answers FAITHFUL, SWAPPED, or UNDETERMINED by about call five. A
+swapped launch is caught in seconds and relaunched cheaply, at measured rates one to two
+launches per certified subagent, instead of being discovered after a long run was spent on
+the wrong model. This is the **verified launch**: the subagent is certified while the work
+is barely begun.
+
+The second layer asks nothing of the planner. A completion check fires on its own whenever
+a subagent finishes, and where a route that promises an exact model was served a different
+one, it says so loudly on the spot. On those routes a subagent either works on the model it
+was promised or the swap is announced; silence is no longer an outcome. One caveat rides
+every number here: how often launches are answered as asked drifts from hour to hour, so no
+measured rate is a fixed property of a configuration. That is why the guarantee rests where
+it does. No combination of settings was found that changes the faithfulness, and the
+faithfulness itself keeps moving, so certification at launch, not configuration, is what
+carries the guarantee; the watchdog, because it reads what is actually serving, holds
+whatever the serving side is doing that hour.
+
 **Determinism is why code is a primary output.** The first question the planner asks of any
 task is whether it can be expressed as a fixed sequence of commands against code that
 already exists. If it can, the planner does not hand it to a subagent to narrate its way
@@ -556,6 +583,12 @@ whenever it fires, because the interface it hangs on offers no advisory channel.
 environment variable silences both. By this workflow's own standard the pair is unproven:
 they behave as specified against their test cases, which makes them fixture-measured, while
 no live session has yet measured whether they change what the planner does.
+
+One more deterministic check watches the moment a subagent finishes: it compares the
+finished subagent's serving stamps against the model its route promised and, where the two
+disagree, tells the planner then and there. Like the pair above, it advises rather than
+blocks, so the work proceeds while a substituted run gets loud even when no one was
+watching for it.
 
 The portable kit that carries these rules ships inside the Claude Code toolkit, at
 `CCRT/planner-kit/`, and the two install separately because they do different jobs.

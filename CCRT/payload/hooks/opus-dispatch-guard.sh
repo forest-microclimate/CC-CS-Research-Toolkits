@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com>
-# opus-dispatch-guard.sh — DISPATCH-TIME alias ban (PreToolUse, matcher=Task).
+# opus-dispatch-guard.sh — DISPATCH-TIME alias ban (PreToolUse, matcher=Task|Agent).
 # STATUS: CURRENT (2026-08-04). The third moment of the model ban, and the one that was missing.
 #
 # WHAT: when the agent is about to LAUNCH a subagent, read tool_input.model. If it is the bare
@@ -45,7 +45,7 @@
 #   ignored the switch would be a surprise. The ban still holds at build time and plan time, which
 #   no env var reaches.
 # REGRESSION GUARD: tests/test_opus_dispatch_guard.sh — deny on opus / opus[1m] / opusplan, silent
-#   on sonnet / haiku / a full id / absent model / a non-Task tool / garbage JSON.
+#   on sonnet / haiku / a full id / absent model / a non-launcher tool / garbage JSON.
 set -eo pipefail   # NOT set -u — maybe-unset vars are guarded with ${x:-}
 
 _log() {
@@ -67,9 +67,10 @@ _crt_mode="${_crt_mode:-on}"
 input="$(cat 2>/dev/null || true)"
 [ -z "${input:-}" ] && exit 0
 
-# fast bail: not a Task payload (cheap string test, no parse)
+# fast bail: not a subagent-launch payload (cheap string test, no parse)
+# Task|Agent compat: CC renamed the launcher tool to Agent (measured 2026-08-07: an Agent-named launch slipped the Task-only check); accept BOTH so a flip-back survives.
 case "$input" in
-  *'"Task"'*) : ;;
+  *'"Task"'*|*'"Agent"'*) : ;;
   *) exit 0 ;;
 esac
 
@@ -92,7 +93,8 @@ if not isinstance(obj, dict):
 
 # The matcher should guarantee this; a mis-registered fragment must not let this guard
 # deny unrelated tool calls.
-if obj.get("tool_name") != "Task":
+# Task|Agent compat: CC renamed the launcher tool to Agent (measured 2026-08-07); accept BOTH names.
+if obj.get("tool_name") not in ("Task", "Agent"):
     sys.exit(0)
 
 ti = obj.get("tool_input")
@@ -118,7 +120,7 @@ else:
     sys.exit(0)
 
 reason = (
-    "BLOCKED by opus-dispatch-guard: this Task launch names model=%r, and %s — a barred model "
+    "BLOCKED by opus-dispatch-guard: this subagent launch names model=%r, and %s — a barred model "
     "reached by a name that reads like a tier choice.\n"
     "\n"
     "Relaunch one of these ways:\n"

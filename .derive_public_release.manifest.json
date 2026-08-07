@@ -766,6 +766,10 @@
   ],
   [
    "SYNC",
+   "CCRT/payload/skills/model-verification/fable_watchdog.py"
+  ],
+  [
+   "SYNC",
    "CCRT/payload/skills/model-verification/model_run_audit.py"
   ],
   [
@@ -1046,11 +1050,27 @@
   ],
   [
    "SYNC",
+   "CCRT/planner-kit/payload/.claude/hooks/fable-dispatch-gate.sh"
+  ],
+  [
+   "SYNC",
+   "CCRT/planner-kit/payload/.claude/hooks/fable-launch-scaffold.sh"
+  ],
+  [
+   "SYNC",
+   "CCRT/planner-kit/payload/.claude/hooks/plan-state-inject.sh"
+  ],
+  [
+   "SYNC",
    "CCRT/planner-kit/payload/.claude/settings.json"
   ],
   [
    "SYNC",
    "CCRT/planner-kit/payload/.claude/skills/model-verification/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/planner-kit/payload/.claude/skills/model-verification/fable_watchdog.py"
   ],
   [
    "SYNC",
@@ -1663,5 +1683,5 @@
  ],
  "gates_failed": 0,
  "profile": "public",
- "written": 414
+ "written": 419
 }

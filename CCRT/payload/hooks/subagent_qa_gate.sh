@@ -4,7 +4,9 @@
 # subagent_qa_gate.sh — SubagentStop QA scan + ERROR-MODE TELEMETRY. ONE nudge, never a loop.
 # STATUS: CURRENT (2026-08-06). O-series (child-QA + measurement); F1 rework (child-scoped scan +
 #   registration de-dup guard + scan_scope-gated nudge); G1 refinement, build qa3-20260806, schema 2
-#   (payload-direct scan text + agent_id attribution + stamp extraction decoupled from scan scope).
+#   (payload-direct scan text + agent_id attribution + stamp extraction decoupled from scan scope);
+#   Z2 addition, build qa4-20260806, schema 2 unchanged (value-gated model-substitution finding:
+#   a certified route's serving stamp checked against its shipped model promise).
 #   Every row carries `build`, so an analyzer can separate pre-fix from post-fix rates instead of
 #   pooling them.
 #
@@ -12,6 +14,9 @@
 #   error-mode shapes, appends ONE structured row per completion to the error-mode log —
 #   CLEAN COMPLETIONS INCLUDED, because a rate needs a denominator — and, only when the scan
 #   found something at severity 2 or worse, puts one advisory nudge in front of the model.
+#   ONE check is VALUE-gated rather than text-shaped (qa4): a certified route's serving stamp
+#   checked against its shipped model promise (EXPECTED_MODELS below) — a silent served-model
+#   substitution gets loud with zero coordinator discipline.
 #
 # WHY IT EXISTS: MEASURED 2026-08-04 — SubagentStop registered: False. Nothing fired when a
 #   child finished, so every child's output was judged by whatever attention the coordinator
@@ -177,11 +182,17 @@ HOUSE_CLASSES = ("causal-verb-without-observation", "efficacy-from-existence", "
                  "premise-unfalsified", "scope-breach")
 OPUS5_CLASSES = ("scope-drift", "thrash", "timidity")     # the three the watch exists for
 FULL_CLASSES = LIGHT_CLASSES + HOUSE_CLASSES + OPUS5_CLASSES
+# VALUE-gated (runs on NEITHER pass, qa4): fired from the row's own VALUES — the serving stamp
+# vs the certified route's shipped promise (EXPECTED_MODELS) — never from a text shape. Its
+# denominator is the completions where agent_type names a certified route AND a serving stamp
+# was extracted, not the whole light-pass population.
+VALUE_CLASSES = ("model-substitution",)
 SEVERITY = {c: 2 for c in LIGHT_CLASSES + OPUS5_CLASSES}
 SEVERITY.update({"efficacy-from-existence": 2, "assert-from-recollection": 2, "scope-breach": 3,
                  "causal-verb-without-observation": 1, "anachronism": 1,
                  "non-co-indexed-comparison": 1, "proxy-for-source": 1,
                  "premise-unfalsified": 1})
+SEVERITY.update({c: 2 for c in VALUE_CLASSES})   # severity 2 => rides the EXISTING nudge gate
 SCHEMA = 2
 # SCHEMA 2 (G1, 2026-08-06): adds `agent_id`; makes `n_records` null on payload-direct rows and
 # `n_records_file` null when the parent transcript was never parsed; renames the sibling scope
@@ -190,7 +201,9 @@ SCHEMA = 2
 # BUILD names the hook version that wrote the row: the SCAN CHANGED across builds, so pre-fix
 # and post-fix rates must not be pooled. This is the field that separates them; a rate quoted
 # across a build boundary without it is two populations.
-BUILD = "qa3-20260806"
+# qa4 (Z2, 2026-08-06): adds the value-gated model-substitution class; row shape unchanged
+# (schema stays 2 — a new findings CLASS is a new value, not a new field).
+BUILD = "qa4-20260806"
 SNIPPET_MAX = 120
 # Same-event guard (defense-in-depth AFTER the registration root fix): an identical row inside
 # this window is the same completion arriving twice, not two completions.
@@ -210,6 +223,15 @@ AGENT_ID_KEYS = ("agent_id", "agentId", "task_id", "taskId", "subagent_id", "sub
 # without observing a Task param. Recorded with model_source="agent-pin" so the inference
 # is visible in the row rather than laundered into an observation.
 PINNED_AGENTS = {"opus5-executor": "claude-opus-5"}
+# The SHIPPED MODEL PROMISE of the two certified routes (name-keyed; qa4). Distinct from
+# PINNED_AGENTS on purpose: that map INFERS a model when no observation exists; this one is
+# the promise a SERVING STAMP is checked against. An open vendor bug serves substituted models
+# on requests the harness resolved correctly (measured 2026-08-04: fable-resolved children
+# served claude-opus-5), so a stamp that disagrees with the route's promise is flagged as a
+# model-substitution finding. Generic children carry no promise and stay coordinator-audited
+# (the model-verification skill); only a serving stamp may fire the check — a launch arg or a
+# pin inference is intent, not serving.
+EXPECTED_MODELS = {"fable-executor": "claude-fable-5", "opus5-executor": "claude-opus-5"}
 
 mode = os.environ.get("CRT_MODE_RESOLVED", "on")
 log_path = os.environ.get("QA_LOG") or ""
@@ -669,6 +691,31 @@ def scan(text, full):
 
 
 findings = scan(final, full) if final.strip() else []
+
+# ── VALUE-gated model-substitution (qa4): the "fail loudly" half ──────────────────
+# A certified route's serving stamp disagreeing with its shipped promise IS the open vendor
+# substitution bug landing on THIS child. Checked from the row's own values — no text shape,
+# no coordinator discipline needed — and APPENDED to findings so the EXISTING row write and
+# the EXISTING severity-2+ nudge gate carry it (no parallel nudge path). served_model is only
+# ever a real serving stamp (a claude-* value from the child's own assistant rows), so an
+# extraction failure stands the check down: fail-soft, the hook's standing direction. The
+# bracket suffix strip mirrors model_run_audit's normalize (a capacity tag like `[1m]` is not
+# a model). Nothing here may ever cost the row write.
+try:
+    _expected = EXPECTED_MODELS.get(agent_type)
+    if _expected and served_model:
+        _served_norm = re.sub(r"\s*\[[^\]]*\]\s*$", "", served_model.strip())
+        if _served_norm != _expected:
+            findings.append({
+                "class": "model-substitution",
+                "severity": SEVERITY["model-substitution"],
+                "evidence_snippet": (
+                    "%s expected %s, serving stamp says %s — served-model substitution — "
+                    "treat this child's output accordingly; relaunch with verified-launch "
+                    "(warmup + watchdog) if fidelity matters."
+                    % (agent_type, _expected, served_model))})
+except Exception:
+    pass
 
 # ══ THE ROW (written for EVERY completion — clean ones are the denominator) ═══════
 row = {

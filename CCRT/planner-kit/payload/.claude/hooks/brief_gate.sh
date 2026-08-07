@@ -4,9 +4,10 @@
 # brief_gate.sh — PreToolUse, matcher=Task. ADVISORY ONLY: it never refuses a launch.
 #
 # WHAT: before a subagent launch, check the brief the prompt references. A referenced
-#   `dev/briefs/*.md` must EXIST and fill the six BRIEF CHECKLIST slots; an unreferenced
-#   substantive launch gets a one-line note. Trivial launches (a read-only searcher, a
-#   short prompt, or a prompt with no write intent) pass in silence.
+#   `dev/briefs/*.md` must EXIST and fill the six BRIEF CHECKLIST slots plus the ROLE
+#   routing line (the seventh slot, Z7 2026-08-06 — advisory exactly like the six); an
+#   unreferenced substantive launch gets a one-line note. Trivial launches (a read-only
+#   searcher, a short prompt, or a prompt with no write intent) pass in silence.
 #
 # CONTRACT (bash-hook-contract):
 #   IN  : one JSON object on STDIN. Load-bearing: tool_name, tool_input.{prompt,description,
@@ -33,9 +34,10 @@ _log() {
 input="$(cat 2>/dev/null || true)"
 [ -z "${input:-}" ] && exit 0
 
-# fast bail: not a Task payload (cheap string test, no parse)
+# fast bail: not a subagent-launch payload (cheap string test, no parse)
+# Task|Agent compat: CC renamed the launcher tool to Agent (measured 2026-08-07: an Agent-named launch slipped the Task-only check); accept BOTH so a flip-back survives.
 case "$input" in
-  *Task*) : ;;
+  *Task*|*Agent*) : ;;
   *) exit 0 ;;
 esac
 
@@ -55,7 +57,8 @@ try:
     obj = json.loads(sys.argv[1])
 except Exception:
     sys.exit(0)
-if not isinstance(obj, dict) or obj.get("tool_name") != "Task":
+# Task|Agent compat: CC renamed the launcher tool to Agent (measured 2026-08-07); accept BOTH names.
+if not isinstance(obj, dict) or obj.get("tool_name") not in ("Task", "Agent"):
     sys.exit(0)
 ti = obj.get("tool_input")
 if not isinstance(ti, dict):
@@ -207,10 +210,27 @@ for ln in lines:
 if not scope_ok:
     missing.append("6. SCOPE RULE" + ("" if scope_seen else " (no line)"))
 
+# ---------- 3b. ROLE — the seventh slot (Z7, 2026-08-06): the routing decision ----
+# A brief with no ROLE assignment has silently skipped the persona/tier routing
+# decision (the recorded other-session failure). Two flags, advisory like the six:
+# no `ROLE:` line at all; or a ROLE'd brief that names neither a persona pointer
+# (an agents/<name>.md path the child reads itself) nor the explicit "no specialist
+# fits" fallback anywhere in the file.
+ROLE_LINE = re.compile(r"^\s*ROLE\s*:", re.I)
+ROLE_PTR = re.compile(r"agents/[A-Za-z0-9_-]+\.md")
+NO_FIT = re.compile(r"no\s+specialist\s+fits", re.I)
+_whole = "\n".join(lines)
+if not any(ROLE_LINE.match(ln) for ln in lines):
+    missing.append("7. ROLE (no line — name the specialist persona by its agents/<name>.md "
+                   "Read-pointer path + tier/effort, or say 'no specialist fits')")
+elif not (ROLE_PTR.search(_whole) or NO_FIT.search(_whole)):
+    missing.append("7. ROLE (present, but the brief names neither a persona pointer "
+                   "agents/<name>.md nor 'no specialist fits')")
+
 if not missing:
     sys.exit(0)   # complete brief => silent
 
-emit('Brief "%s": %d of the six slots not filled — %s. An empty slot means not ready to '
+emit('Brief "%s": %d of the seven slots not filled — %s. An empty slot means not ready to '
      "launch (form: dev/briefs/_TEMPLATE.md)." % (ref, len(missing), "; ".join(missing)))
 PYEOF
 rc=$?
