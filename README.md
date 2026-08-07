@@ -101,3 +101,11 @@ quickstart for whichever platform you use.
 MIT — see [`LICENSE`](LICENSE). Every source and documentation file carries the same grant in its own
 comment syntax (`SPDX-License-Identifier: MIT`); data and binary files are covered by the root
 `LICENSE` alone.
+
+## Authorship
+
+This toolkit was developed by Neill Prohaska, using Claude (Anthropic's AI assistant) extensively
+as a development tool — and the package's own methodology to build itself. Claude is a tool here,
+not an author, contributor, or endorser in any official capacity; this repository is not an
+Anthropic product and has no affiliation with Anthropic. All content is the work and responsibility
+of the copyright holder: © 2026 Neill Prohaska, MIT License.
