@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com>
-# brief_gate.sh — PreToolUse, matcher=Task. ADVISORY ONLY: it never refuses a launch.
+# brief_gate.sh — PreToolUse, matcher=Task|Agent. ADVISORY ONLY: it never refuses a launch.
+#   (Task|Agent: CC renamed the subagent-launcher tool to Agent — measured 2026-08-07 — so both
+#   names stay registered, and a vendor flip-back survives.)
 #
 # WHAT: before a subagent launch, check the brief the prompt references. A referenced
 #   `dev/briefs/*.md` must EXIST and fill the six BRIEF CHECKLIST slots plus the ROLE

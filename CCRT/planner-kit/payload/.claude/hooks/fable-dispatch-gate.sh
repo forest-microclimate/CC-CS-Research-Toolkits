@@ -7,8 +7,8 @@
 #   sibling task owns — never fold the two hooks together).
 #
 # WHAT: when the agent is about to LAUNCH a fable/opus5-tier child — subagent_type
-#   fable-executor or opus5-executor, or model=="fable" — enforce the launch conventions the
-#   docs alone keep failing to carry into sessions that never loaded them:
+#   fable-executor, fable-subplanner or opus5-executor, or model=="fable" — enforce the launch
+#   conventions the docs alone keep failing to carry into sessions that never loaded them:
 #     CHECK 1 (launch shape): the prompt/description names a dev/briefs/*.md brief, OR the
 #       prompt opens with the WARMUP token (a legitimate no-brief warmup/probe shape).
 #       Neither => DENY. A NAMED brief that is absent/unreadable => DENY (a dangling brief
@@ -22,6 +22,18 @@
 #       by ~call 5 (the fable_watchdog contract). Missing => DENY.
 #   ALLOWLIST: subagent_type matching ^probe- passes silently (probe cells are legitimate
 #   no-brief launches by design). Anything outside the trigger set passes silently.
+#
+# ─── ADVISORY ARM (KP2, 2026-08-07) — the launch SHAPE, not the brief ──────────────
+#   The three checks above judge the BRIEF and can deny. The advisory judges the ROUTE and
+#   never denies: on the PASS path, when a launch requests model `fable` from a GENERIC agent
+#   type (subagent_type outside the pinned set, ^probe- already allowlisted), it emits ONE
+#   hookSpecificOutput.additionalContext note. WHY advisory and not a check: that shape is
+#   the MEASURED substitution-prone class (fable requests from full-tools agent types were
+#   SERVED claude-opus-5 in ~94% of one measured session population, 49/52, while the pinned
+#   restricted-tools routes held) — but it is LEGAL, sometimes necessary, and the defect is a
+#   vendor-side bug this gate does not own. So it names the certified alternatives
+#   (`fable-executor` for executor work, `fable-subplanner` for sub-planning) and asks for
+#   watchdog certification, and the launch proceeds either way. Never a deny, never nonzero.
 #
 # CONTRACT (per bash-hook-contract; same shape as opus-dispatch-guard.sh):
 #   IN : one JSON object on STDIN. Load-bearing: tool_name, cwd,
@@ -95,11 +107,18 @@ desc = ti.get("description") if isinstance(ti.get("description"), str) else ""
 cwd = obj.get("cwd") if isinstance(obj.get("cwd"), str) else ""
 
 # ---------- TRIGGER + ALLOWLIST --------------------------------------------------
+# THE PINNED ROUTES — the project-scoped agents whose own frontmatter carries the model, so
+# the launch needs no model param. KP2 (2026-08-07) adds `fable-subplanner`: it is fable-TIER,
+# so it joins FABLE_TIER_TYPES and CHECK 3's WARMUP requirement applies to it exactly as to
+# the executor; it is PINNED, so it is one of the certified alternatives the advisory names.
+FABLE_TIER_TYPES = ("fable-executor", "fable-subplanner")
+PINNED_TYPES = ("fable-executor", "fable-subplanner", "opus5-executor")
+
 # Prefix-with-boundary on the model (same shape as opus-dispatch-guard classify), so a
 # context-suffixed variant like `fable[1m]` is still a fable request.
 fable_model = bool(re.match(r"^fable([^a-z0-9-].*)?$", model))
-fable_tier = (sub == "fable-executor") or fable_model
-if not (fable_tier or sub == "opus5-executor"):
+fable_tier = (sub in FABLE_TIER_TYPES) or fable_model
+if not (fable_tier or sub in PINNED_TYPES):
     sys.exit(0)                    # outside the trigger set => nothing to judge
 if re.match(r"^probe-", sub):
     sys.exit(0)                    # probe cells are legitimate no-brief launches
@@ -197,6 +216,30 @@ if fable_tier and "WARMUP" not in text:
          "add the WARMUP block (4 small opening reads; persona/skill read-pointers preferred) "
          "and run the watchdog on the child transcript.")
 
+# ---------- ADVISORY (KP2): the substitution-prone launch SHAPE ------------------
+# PASS PATH ONLY — every check above is satisfied, so this launch is going ahead. What is
+# left is a ROUTE risk, not a defect: a `fable` request from a GENERIC agent type is the
+# measured substitution-prone shape. One note, no decision field, exit 0 — the launch is
+# never blocked and the exit code never moves (a deny here would break the sub-planner
+# relay and every other legitimate generic-agent fable launch).
+if fable_model and sub not in PINNED_TYPES:
+    print(json.dumps({"hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "additionalContext":
+            "ADVISORY (fable-dispatch-gate): this launch requests model `fable` on the "
+            "generic agent type %r. Generic-agent + fable is the MEASURED "
+            "substitution-prone class: fable requests from full-tools agent types were "
+            "SERVED claude-opus-5 in ~94%% of one measured session population (49/52), "
+            "while the pinned restricted-tools routes held. The certified alternatives are "
+            "`fable-executor` (executor work) and `fable-subplanner` (sub-planning), whose "
+            "frontmatter pins carry the model so no model param is needed. Proceeding as "
+            "launched is legitimate — but CERTIFY it rather than assume it: run "
+            ".claude/skills/model-verification/fable_watchdog.py --watch on the child "
+            "transcript (FAITHFUL/0 = certified · SWAPPED@k/1 = relaunch or proceed "
+            "knowingly and log it · UNDETERMINED/2 = investigate). A correct request is "
+            "not yet the run you asked for." % (sub or "<unnamed>")}}))
+    sys.exit(0)
+
 sys.exit(0)
 PYEOF
 rc=$?
@@ -216,7 +259,12 @@ if [ -n "${verdict:-}" ]; then
   # silently dropped, turning a DENY into a phantom pass.
   case "$verdict" in
     \{*\}) printf '%s\n' "$verdict"
-           _log "DENY: $(printf '%s' "$verdict" | head -c 200)" ;;
+           # KP2: stdout now carries EITHER a deny OR the pass-path advisory — label the log
+           # by which, or a future reader cannot tell a blocked launch from an advised one.
+           case "$verdict" in
+             *'"permissionDecision"'*) _log "DENY: $(printf '%s' "$verdict" | head -c 200)" ;;
+             *)                        _log "ADVISORY: $(printf '%s' "$verdict" | head -c 200)" ;;
+           esac ;;
     *)     _log "INDETERMINATE: gate stdout was not a JSON object => fail-open" ;;
   esac
 fi

@@ -1038,6 +1038,10 @@
   ],
   [
    "SYNC",
+   "CCRT/planner-kit/payload/.claude/agents/fable-subplanner.md"
+  ],
+  [
+   "SYNC",
    "CCRT/planner-kit/payload/.claude/agents/opus5-executor.md"
   ],
   [
@@ -1098,7 +1102,19 @@
   ],
   [
    "SYNC",
+   "CCRT/planner-kit/payload/dev/tools/adherence_scorecard.py"
+  ],
+  [
+   "SYNC",
    "CCRT/planner-kit/payload/dev/tools/stale_move.sh"
+  ],
+  [
+   "SYNC",
+   "CCRT/planner-kit/payload/dev/tools/test_adherence_scorecard.sh"
+  ],
+  [
+   "SYNC",
+   "CCRT/planner-kit/payload/dev/tools/test_enforcement_e2e.sh"
   ],
   [
    "SYNC",
@@ -1626,7 +1642,15 @@
   ],
   [
    "SYNC",
+   "Documentation/PDF/ASSURANCE_ARCHITECTURE.pdf"
+  ],
+  [
+   "SYNC",
    "Documentation/PDF/CROSS_PORTING_GUIDE.pdf"
+  ],
+  [
+   "SYNC",
+   "Documentation/PDF/MODEL_SUBSTITUTION_AND_VERIFIED_LAUNCH.pdf"
   ],
   [
    "REFERENCE",
@@ -1646,7 +1670,15 @@
   ],
   [
    "SYNC",
+   "Documentation/human_md/ASSURANCE_ARCHITECTURE.md"
+  ],
+  [
+   "SYNC",
    "Documentation/human_md/CROSS_PORTING_GUIDE.md"
+  ],
+  [
+   "SYNC",
+   "Documentation/human_md/MODEL_SUBSTITUTION_AND_VERIFIED_LAUNCH.md"
   ],
   [
    "REFERENCE",
@@ -1662,7 +1694,15 @@
   ],
   [
    "SYNC",
+   "Documentation/machine_md/ASSURANCE_ARCHITECTURE.machine.md"
+  ],
+  [
+   "SYNC",
    "Documentation/machine_md/CROSS_PORTING_GUIDE.machine.md"
+  ],
+  [
+   "SYNC",
+   "Documentation/machine_md/MODEL_SUBSTITUTION_AND_VERIFIED_LAUNCH.machine.md"
   ],
   [
    "REFERENCE",
@@ -1683,5 +1723,5 @@
  ],
  "gates_failed": 0,
  "profile": "public",
- "written": 419
+ "written": 429
 }

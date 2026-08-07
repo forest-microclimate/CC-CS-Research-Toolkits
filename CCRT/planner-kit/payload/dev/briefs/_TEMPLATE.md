@@ -1,6 +1,6 @@
 # _TEMPLATE.md — child-brief form (machine-only; primary reader = the child agent)
 # HOW TO USE: COPY to `dev/briefs/<ID>-<slug>.md`, fill EVERY slot, then launch. An EMPTY slot = NOT ready to launch.
-# Slots 1-5 + SCOPE RULE = the six BRIEF CHECKLIST elements (root `CLAUDE.md`, RULE.supervisory_workflow).
+# Slots 1-5 + SCOPE RULE + ROLE = the seven BRIEF CHECKLIST elements (root `CLAUDE.md`, RULE.supervisory_workflow).
 # STRICTNESS IS TIER-CONDITIONAL (measured): hard-rule checkpoint blocks help Haiku-class children, are ~neutral on Sonnet-class, and HURT Opus-class — carry them in T4 briefs only; T1 briefs stay light-touch. Put NO show-your-thinking / echo-reasoning instructions in any brief (fable reasoning_extraction refusal risk, vendor-stated).
 # STATUS: CURRENT (2026-08-04). Form only — drop this line from the copy; a filled brief is dated in its own title slot.
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->

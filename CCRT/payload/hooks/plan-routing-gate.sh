@@ -4,7 +4,8 @@
 # plan-routing-gate.sh — PLAN-TIME routing-block enforcement (PreToolUse, matcher=ExitPlanMode).
 # STATUS: CURRENT (2026-08-07). A2_ROUTING_SCHEMA lint checks L1-L4 + the Z7 L7/L8 extensions
 #   (L7 owner-completeness, L8 multi-stage completeness), CC half; Z7b: extraction path 3
-#   + the compound executor form (HARNESS CHANGE note below).
+#   + the compound executor form (HARNESS CHANGE note below); KP2: L9 tier-explicitness
+#   (model_tier + effort + topology REQUIRED on every delegate track).
 #
 # ─── L4 REWORK (2026-08-04, O-series: opus-5 as CONSTRAINED SUPERVISED USE) ────────
 #   claude-opus-5 is no longer barred outright on the CC side; it is legal in exactly one
@@ -40,6 +41,18 @@
 #     markdown-table cell may carry the JSON array literally), and a plan routing >1
 #     delegate track must carry a Waves/ordering section (or describe the ordering with
 #     the word "wave").
+#
+# ─── L9 EXTENSION (2026-08-07, KP2: the tier decision must be ON THE RECORD) ───────
+#   Recorded gap: the Planner steering mandate says tier every child by difficulty and
+#   pick a topology, but this gate validated `model_tier` ONLY WHEN PRESENT and never
+#   looked at `effort` or `topology` at all — so a track that never made those decisions
+#   passed exactly like one that made them well (measured red: a delegate track with no
+#   model_tier / no effort / no topology, and one with an invented topology token, both
+#   passed silently). L9 closes it as a third MINIMUM-EXPLICITNESS check, same shape as
+#   L7/L8 — it forces the decision to be RECORDED, never judges whether it was wise:
+#     every `delegate:` track carries model_tier in the A2 tier vocabulary (NOT "n/a",
+#     which is the MAIN-AGENT / CODE: sentinel), a non-empty effort, and a topology in
+#     the A2 topology vocabulary. MAIN-AGENT / CODE: tracks are exempt.
 #
 # WHAT: when the agent is about to present a plan for approval (ExitPlanMode), lint the
 #   plan's Delegation & Routing block and DENY the tool call when it is missing or
@@ -92,7 +105,10 @@
 #        Any internal error => INDETERMINATE => FAIL-OPEN but LOG. A gate that cannot
 #        reach a verdict must never wedge the user's plan on its own bug.
 #   BLAST: read-only. Reads stdin plus (only as a fallback) the plan file the payload
-#        names; never writes, edits, deletes, or forks a network call.
+#        names, and — when the payload names NO plan at all (EXTRACTION PATH 3, Z7b) —
+#        the NEWEST *.md under ${CRT_PLANS_DIR:-$HOME/.claude/plans} (the env override
+#        exists FOR TESTABILITY), read ONLY when its mtime is within the last 30 min;
+#        never writes, edits, deletes, or forks a network call.
 set -eo pipefail   # NOT set -u — maybe-unset vars are guarded with ${x:-}
 
 _log() {
@@ -277,6 +293,11 @@ VALID_TIERS = ("T1", "T1_hardest", "T1_supervised", "T2", "T3", "T4")
 
 # Executors that may run a barred-outside-this-shape model, and therefore require the watch.
 SUPERVISED_EXECUTORS = ("opus5-executor",)
+
+# L9 topology vocabulary (KP2, 2026-08-07) — the A2 `topology` field row, verbatim. Compared
+# after norm_name, like L8's NON_CASCADE_TOPOLOGIES, so casing and spacing do not decide it.
+VALID_TOPOLOGIES = ("single-thread", "parallel-wave", "sequential-build", "convergence",
+                    "verify-loop")
 
 # L7/L8 shared vocabulary (Z7, 2026-08-06). Owner placeholders read as ABSENT; the two
 # explicit fallback forms come from delegation-planning Part A ("main agent, no specialist
@@ -486,6 +507,47 @@ for i, t in enumerate(all_tracks):
                 "the explicit \"no specialist fits\" / \"skill-only\" fallback."
                 % (tid, owner_txt, ex, name))
 
+        # L9 tier-explicitness (KP2, 2026-08-07): a delegate track RECORDS the three steering
+        # decisions — the difficulty TIER, the EFFORT, and the TOPOLOGY. MINIMUM-FORM, like
+        # L7/L8: the fields must be present and drawn from the A2 vocabulary; whether the tier
+        # chosen is the WISE one is never judged here. The recorded gap this closes: model_tier
+        # was validated only WHEN PRESENT and effort/topology were not inspected at all, so a
+        # track that never decided its tier read exactly like one that decided it well.
+        # MAIN-AGENT / CODE: tracks are exempt by construction — this block sits inside the
+        # `delegate:` branch, and "n/a" is legal (indeed expected) on those tracks.
+        mtv9 = str(t.get("model_tier") or "").strip().strip("`")
+        if not mtv9:
+            fails.append(
+                "L9 tier-explicitness: track %s routes %r but names NO `model_tier`. Record "
+                "the difficulty tier this child is routed at — one of %s (\"n/a\" belongs to "
+                "MAIN-AGENT / CODE: tracks only)." % (tid, ex, "|".join(VALID_TIERS)))
+        elif mtv9.lower() == "n/a":
+            fails.append(
+                "L9 tier-explicitness: track %s sets model_tier=\"n/a\" on a DELEGATED track. "
+                "\"n/a\" is the MAIN-AGENT / CODE: sentinel — a delegated child always runs at "
+                "some tier, so name it: one of %s." % (tid, "|".join(VALID_TIERS)))
+        # A model_tier that is PRESENT but unknown/banned is already reported by L4 below;
+        # re-reporting it here would print one defect twice.
+
+        eff9 = norm_text(t.get("effort")).strip("`").strip()
+        if not eff9 or eff9.lower() in OWNER_PLACEHOLDERS:
+            fails.append(
+                "L9 tier-explicitness: track %s routes %r but names NO `effort` "
+                "(missing/empty/placeholder). Tier and effort are TWO decisions, and the "
+                "unwritten one is the silently-defaulted one — add \"effort\" "
+                "(max|high|medium|low)." % (tid, ex))
+
+        topo9 = norm_name(str(t.get("topology") or "").strip().strip("`"))
+        if not topo9 or topo9 in ("n/a", "-"):
+            fails.append(
+                "L9 tier-explicitness: track %s routes %r but declares NO `topology`. Say how "
+                "the work runs — one of %s." % (tid, ex, "|".join(VALID_TOPOLOGIES)))
+        elif topo9 not in VALID_TOPOLOGIES:
+            fails.append(
+                "L9 tier-explicitness: track %s sets topology=%r, which is not one of %s. An "
+                "invented topology token names no execution shape the plan can be read against."
+                % (tid, str(t.get("topology")).strip(), "|".join(VALID_TOPOLOGIES)))
+
     # L4, per-track: a banned model id / alias in a model or tier field (verify_models.sh
     # classify() semantics), AND model_tier must be a known tier token when present.
     for k in ("model", "model_tier", "tier", "model_id"):
@@ -590,7 +652,7 @@ reason = ["BLOCKED by plan-routing-gate %s" % marker, ""]
 if form:
     reason.append("Found: %s." % form)
 reason.append("This plan does not satisfy A2_ROUTING_SCHEMA lint checks L1-L4 (+ the Z7 "
-              "L7/L8 extensions):")
+              "L7/L8 and KP2 L9 extensions):")
 reason += ["  - %s" % f for f in fails]
 reason += [
     "",

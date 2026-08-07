@@ -1,10 +1,27 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com>
-# planner-kit installer (v1.6) — LAZY-SCAFFOLD: minimal by default, --full for the classic tree.
-# Idempotent & non-destructive: a re-run changes nothing it already did; ZERO deletes, ZERO overwrites
-# (the ONE deliberate exception: --upgrade-rules rewrites the planner-kit block inside the root
-#  CLAUDE.md IN PLACE, after keeping a dated backup — everything outside the block stays byte-untouched).
+# planner-kit installer (v1.8) — LAZY-SCAFFOLD: minimal by default, --full for the classic tree.
+# Idempotent & CONTENT-CURRENT: a re-run changes nothing it already did, and ZERO deletes ever — but a
+# re-run at a NEWER kit now REFRESHES the kit's OWN artifacts (v1.8, below) instead of leaving the
+# adopter stranded on old content. USER-OWNED surfaces keep the never-overwrite contract unchanged.
+#
+# CONTENT REFRESH (v1.8) — WHY IT EXISTS: the install was file-EXISTENCE gated and therefore version-
+#   BLIND. A v1.6 adopter re-running at v1.8 received the new FILENAMES while every pre-existing file
+#   kept its v1.6 bytes, and .claude/settings.json went on registering them — so the project READ as
+#   upgraded and BEHAVED as the old version (a collect gate with no verdict check; a brief_gate with no
+#   ROLE slot). Stranded content is worse than a missing file: a missing file is visible, stale bytes
+#   are not. So the artifacts the KIT OWNS — the five hooks, the dev/tools diagnostics, the
+#   model-verification skill files, and EVERY agent the kit places (a GLOB over payload/.claude/agents,
+#   so an agent added to the payload later is covered without editing this file) — are
+#   REFRESH-IF-DIFFERENT: byte-compared against the payload source, and where they DIFFER the project's
+#   copy is kept in a DATED BACKUP DIR FIRST (one dir per run, printed) and only then replaced. No
+#   backup, no replace. IDENTICAL => skipped exactly as before, so a same-version re-run is still a
+#   no-op that creates no backup dir at all.
+#   NEVER REFRESHED — seed-if-absent, unchanged: the root CLAUDE.md outside the marker span, the
+#   .claude/CLAUDE.md pointer stub, dev/briefs content, the ledger / plan / planner-memory templates,
+#   STRUCTURE_RULES.md (opt in via --upgrade-rules), and anything the kit does not ship — the refresh
+#   iterates PAYLOAD sources, so a file the kit never shipped is never visited, let alone written.
 #
 # v1.5 RENAME + MIGRATION: the installed folder contract is now STRUCTURE_RULES.md (was
 #   STRUCTURE_RULES.machine.md through v1.4). Its content is unchanged and still machine-STYLE;
@@ -20,9 +37,11 @@
 #
 # TWO MODES:
 #   DEFAULT (minimal) — install ONLY the two front-door files at the project root:
-#       (1) root CLAUDE.md  and  (2) STRUCTURE_RULES.md — plus the four
-#       workflow hooks + their .claude/settings.json registration, and the model-routing set
-#       (two executor agents + the model-verification skill; see BOTH MODES below).
+#       (1) root CLAUDE.md  and  (2) STRUCTURE_RULES.md — plus the five
+#       workflow hooks + their .claude/settings.json registration, the model-routing set
+#       (EVERY agent in payload/.claude/agents — fable-executor, opus5-executor, fable-subplanner —
+#       plus the model-verification skill), and the dev/tools DIAGNOSTICS
+#       (the enforcement e2e battery + the adherence scorecard; see BOTH MODES below).
 #     The folder tree is NOT pre-created; the agent materializes each folder ON DEMAND per
 #     STRUCTURE_RULES.md (a folder's absence = not yet needed, never an error). This
 #     removes the speculative clutter of pre-creating folders a given project never uses.
@@ -40,17 +59,28 @@
 #       (plain `mv`, content preserved) — then seed STRUCTURE_RULES.md (only-if-absent), recording
 #       THIS kit's absolute path into its SEEDS section so an on-demand materialization can find
 #       the seed templates later. BOTH names present => refuse up front, change nothing.
-#   Install the four workflow hooks into .claude/hooks/ (mode 755) and register them in
+#   Install the five workflow hooks into .claude/hooks/ (mode 755), REFRESH-IF-DIFFERENT (a divergent
+#       installed hook is backed up, then replaced with this kit's copy), and register them in
 #       .claude/settings.json: seeded when absent, else DEEP-MERGED via lib/merge_settings.py so
 #       your own settings and any foreign hook survive intact (a dated backup is kept before the
-#       first merge). brief_gate + collect_outcome_gate + fable-launch-scaffold advise only;
+#       first merge). brief_gate + collect_outcome_gate + fable-launch-scaffold + plan-state-inject advise only;
 #       fable-dispatch-gate is the ONE deny-capable gate (CRT_MODE off/observe silences it).
-#   Seed the MODEL-ROUTING capability set (v1.4/K10, only-if-absent): .claude/agents/
-#       {fable-executor,opus5-executor}.md (the two constructed model routes) and
-#       .claude/skills/model-verification/ (the serving-stamp audit skill + instrument) — so a
-#       fresh project can both KNOW the model-control doctrine (CLAUDE.md) and DO it.
-#   (d) print a did/skipped summary.
-#   (e) ZERO deletes, ZERO overwrites — a re-run changes nothing it already did. .DS_Store is never copied.
+#   Install the MODEL-ROUTING capability set (v1.4/K10; REFRESH-IF-DIFFERENT since v1.8): .claude/agents/
+#       — EVERY agent in payload/.claude/agents, taken as a GLOB (today: fable-executor, opus5-executor,
+#       fable-subplanner; tomorrow whatever the payload gains) — and .claude/skills/model-verification/ (the serving-stamp
+#       audit skill + instruments) — so a fresh project can both KNOW the model-control doctrine
+#       (CLAUDE.md) and DO it, and an upgrading project gets the CURRENT contracts, not last version's.
+#   Install the dev/tools DIAGNOSTICS (v1.8, REFRESH-IF-DIFFERENT, the source file's exec bit carried):
+#       test_enforcement_e2e.sh (red-teams the installed gates + their registrations, one command)
+#       + adherence_scorecard.py & test_adherence_scorecard.sh (the measurement instrument that
+#       scores per-session workflow adherence, and its fixture guard) + stale_move.sh. A project
+#       that ships enforcement ships the tools to VERIFY and MEASURE it, both directions; this is
+#       also the one place the kit CREATES a lazy-materialized folder up front, and correctly so —
+#       lazy materialization defers folders the kit has no content for, and it now has content.
+#   (d) print a did/skipped/refreshed summary (naming the backup dir whenever one was made).
+#   (e) ZERO deletes, ever. ZERO overwrites of USER-OWNED files. A kit-OWNED file that DIFFERS from the
+#       payload is backed up and refreshed (above); one that matches is skipped, so a re-run at the same
+#       kit version changes nothing it already did. .DS_Store is never copied.
 #
 # --upgrade-rules (v1.4) — UPGRADE an already-installed project: replace the FIRST
 #   `<!-- planner-kit:BEGIN … -->` … `<!-- planner-kit:END -->` span inside the root CLAUDE.md with
@@ -60,6 +90,12 @@
 #   never-overwrite no-op it has always been. v1.5: the flag ALSO performs the STRUCTURE_RULES
 #   migration above (it is unconditional in every mode), so ONE --upgrade-rules run fully converges
 #   an old root — the block text and the file name move together.
+#   v1.8: the flag ALSO refreshes STRUCTURE_RULES.md ITSELF — a whole-file replace with this kit's
+#   current folder contract (this kit's path re-recorded into its SEEDS section), the project's copy
+#   kept in the run's dated backup dir FIRST and named in the summary. It rides the OPT-IN, not the
+#   default, because that file is an EDITABLE project surface (a project may extend its per-folder
+#   contract) while the hooks/agents/skills/tools are shipped kit content. Identical => no change,
+#   no backup, so a second --upgrade-rules run is a no-op on this axis too.
 # --dry-run composes with all modes (prints actions, writes nothing). -h/--help documents all flags.
 #
 # Portability: bash 3.2+ (macOS default); no `timeout`; no GNU-only flags; no realpath / readlink -f.
@@ -69,7 +105,7 @@
 set -u
 set -o pipefail
 
-KIT_VERSION="v1.7"
+KIT_VERSION="v1.8"
 
 # The installed folder contract's file name, and the pre-v1.5 name it migrates FROM. Kept as two
 # variables so the name lives in ONE place: every seed, migration, guard, summary line and closing
@@ -89,6 +125,17 @@ TARGET_DIR="$(pwd -P)"
 PAYLOAD_DIR="$KIT_DIR/payload"
 INSTALL_DATE="$(date +%F 2>/dev/null || echo unknown)"
 
+# ---- the run's ONE refresh backup dir (v1.8) --------------------------------
+# Every file a refresh replaces is copied here FIRST, under its own project-relative path, so the
+# adopter can diff or restore any single file. ONE dir per RUN (not per day like the CLAUDE.md /
+# settings.json backups): two runs minutes apart can carry different payload content, and a
+# second run must never overwrite the copy the first run rescued. Created LAZILY — the mkdir
+# happens inside the first backup, so a run that refreshes nothing leaves no empty dir behind,
+# which is what keeps an idempotent re-run observably inert.
+INSTALL_TS="$(date +%Y%m%d-%H%M%S 2>/dev/null || echo unknown)"
+REFRESH_BACKUP_REL="backups/planner-kit-refresh-$INSTALL_TS"
+REFRESH_BACKUP_MADE=0   # 1 once >=1 file has been backed up into it (real run) or is predicted to be (dry-run)
+
 DRY_RUN=0
 FULL=0              # --full = classic scaffold+seed layout up front; default (0) = minimal two-file install
 UPGRADE=0           # --upgrade-rules = replace the existing planner-kit block in root CLAUDE.md in place
@@ -100,17 +147,23 @@ usage() {
   cat <<EOF
 planner-kit installer ($KIT_VERSION)
 Usage: cd /your/project && bash "$KIT_DIR/install.sh" [--full] [--upgrade-rules] [--dry-run]
-  (default)   MINIMAL install: root CLAUDE.md + $STRUCT_DOC_NAME, plus the four
-              workflow hooks + their .claude/settings.json registration, and the
-              model-routing set (.claude/agents/ executors + .claude/skills/model-verification).
+  (default)   MINIMAL install: root CLAUDE.md + $STRUCT_DOC_NAME, plus the five
+              workflow hooks + their .claude/settings.json registration, the
+              model-routing set (every .claude/agents/ route the payload ships —
+              fable-executor, opus5-executor, fable-subplanner — plus .claude/skills/model-verification),
+              and the dev/tools diagnostics (enforcement e2e battery + adherence scorecard).
               The folder tree is materialized ON DEMAND per $STRUCT_DOC_NAME
-              (a folder's absence = not yet needed, never an error).
+              (a folder's absence = not yet needed, never an error). Kit-OWNED files
+              (hooks, agents, model-verification skill, dev/tools) are REFRESHED when
+              they differ from this kit's payload — the replaced copy is kept in a dated
+              backup dir, printed at the end. Your own files are never overwritten.
   --full      CLASSIC install: pre-scaffold the whole standard tree + .gitkeeps + seed all
               ledger/memory/tool templates, PLUS $STRUCT_DOC_NAME.
   --upgrade-rules
               UPGRADE an installed project: replace the existing planner-kit rules block in
               the root CLAUDE.md with this kit's current block, in place (dated backup kept
-              first; every byte outside the block untouched). Refuses when no block exists.
+              first; every byte outside the block untouched), AND replace $STRUCT_DOC_NAME
+              with this kit's current copy (dated backup kept first). Refuses when no block exists.
   EVERY MODE  migrates a pre-v1.5 $STRUCT_DOC_OLD at the project root to
               $STRUCT_DOC_NAME (rename in place, content preserved). Both names
               present => refuses up front and changes nothing.
@@ -230,6 +283,112 @@ seed_glob() {  # seed_glob SRC_DIR_ABS DST_RELDIR  — seed every regular file i
   done
 }
 
+# ---- KIT-OWNED artifacts: refresh-if-different (v1.8) ----------------------
+# The seed helpers above are EXISTENCE-gated, which is right for a template the project then owns and
+# edits. It is wrong for the files the KIT owns — the hooks, the agents, the model-verification skill,
+# the dev/tools diagnostics — because there the project is not the author: it is a consumer of a
+# versioned artifact, and an existence gate silently pins it to whatever version it first installed.
+# These three helpers are that second contract: compare, back up, replace. See the CONTENT REFRESH
+# note in the header for the failure this closes.
+backup_before_replace() {  # backup_before_replace DST_RELPATH -> 0 = the project's copy is safely kept
+  # Copy the project's CURRENT file into THIS RUN's backup dir under its own project-relative path
+  # (backups/planner-kit-refresh-<ts>/<rel>), so each rescued file's origin is readable from the path
+  # alone and two same-named files (a hook and a tool) cannot collide. Never called in dry-run.
+  # TWO statements, deliberately: bash expands ALL the words of a `local` builtin BEFORE binding any of
+  # them, so `local rel="$1" bak="…$rel"` would read the CALLER's `rel` — which under `set -u` is a
+  # fatal unbound-variable exit whenever the caller has none (measured: --upgrade-rules aborted the
+  # whole install here, and it only looked fine from refresh_file because that caller happens to have
+  # a `rel` of its own in dynamic scope holding the same value).
+  local rel="$1"
+  local bak="$TARGET_DIR/$REFRESH_BACKUP_REL/$rel"
+  mkdir -p "$(dirname "$bak")" 2>/dev/null || return 1
+  cp "$TARGET_DIR/$rel" "$bak" 2>/dev/null || return 1
+  REFRESH_BACKUP_MADE=1
+  return 0
+}
+
+refresh_file() {  # refresh_file SRC_ABS DST_RELPATH KIND MODE
+  # KIND = the summary label word (hook|tool|agent|skill) — cosmetic, it keeps the table readable.
+  # MODE = "755"   -> always executable (hooks: a hook that lost its +x never fires), or
+  #        "carry" -> take the SOURCE's mode, so a non-executable payload file (a data sidecar
+  #                   shipped beside a script) stays non-executable. Preserving, not forcing.
+  local src="$1" rel="$2" kind="$3" mode="$4" dst tmp verb suffix
+  dst="$TARGET_DIR/$rel"
+  if [ ! -f "$src" ]; then
+    record "$kind $rel" "SKIPPED (no source)"; return 0
+  elif [ -e "$dst" ] && [ ! -f "$dst" ]; then
+    # A directory / symlink-to-dir / device where a file belongs: refuse and say so. Replacing it
+    # would need a delete, and this installer deletes nothing.
+    record "$kind $rel" "SKIPPED (target is not a regular file)"; return 0
+  fi
+  if [ -f "$dst" ]; then
+    if cmp -s "$src" "$dst"; then
+      record "$kind $rel" "skipped (identical)"; return 0   # THE no-op path: same bytes => no write, no backup
+    fi
+    verb="refreshed"
+  else
+    verb="installed"
+  fi
+  if [ "$DRY_RUN" = 1 ]; then
+    if [ "$verb" = refreshed ]; then
+      REFRESH_BACKUP_MADE=1                                  # predict the backup dir the real run would make
+      record "$kind $rel" "would refresh (yours backed up)"
+    else
+      record "$kind $rel" "would install"
+    fi
+    return 0
+  fi
+  # BACKUP FIRST — no backup, no replace. The whole permission to overwrite rests on the project's
+  # copy staying recoverable, so a failed backup ABANDONS the refresh (logged) rather than completing
+  # it: a stale file is a smaller loss than an unrecoverable one.
+  if [ "$verb" = refreshed ] && ! backup_before_replace "$rel"; then
+    record "$kind $rel" "FAILED (backup) — refresh skipped, your copy untouched"; return 0
+  fi
+  # Write via a temp beside the target, then rename: same filesystem => the swap is atomic, so a hook
+  # firing mid-install never reads a half-written file. Copying to a NEW temp also gives it the SOURCE's
+  # mode — a plain `cp` ONTO an existing file would keep the OLD file's mode — which is what carries the
+  # payload's exec bit through a refresh.
+  tmp="$dst.pk-refresh.tmp"
+  if ! mkdir -p "$(dirname "$dst")" 2>/dev/null || ! cp "$src" "$tmp" 2>/dev/null; then
+    rm -f "$tmp" 2>/dev/null
+    record "$kind $rel" "FAILED (copy)"; return 0
+  fi
+  suffix=""
+  if [ "$mode" = 755 ]; then
+    if chmod 755 "$tmp" 2>/dev/null; then
+      suffix=" (mode 755)"
+    else
+      suffix=" (NOT marked +x — chmod it if it never fires)"   # fixable; a missing file is not
+    fi
+  elif [ -x "$src" ]; then
+    suffix=" (mode carried)"
+  fi
+  if mv "$tmp" "$dst" 2>/dev/null; then
+    if [ "$verb" = refreshed ]; then
+      record "$kind $rel" "refreshed, yours backed up$suffix"
+    else
+      record "$kind $rel" "installed$suffix"
+    fi
+  else
+    rm -f "$tmp" 2>/dev/null
+    record "$kind $rel" "FAILED (write)"
+  fi
+}
+
+refresh_glob() {  # refresh_glob SRC_DIR_ABS DST_RELDIR KIND MODE — refresh_file every regular file in SRC_DIR
+  # NON-recursive and PAYLOAD-DRIVEN: it walks the PAYLOAD's files, never the project's. That is what
+  # keeps a project's own agent, its own tool, or a foreign skill file outside the refresh's reach —
+  # no exclusion list to maintain, because a file the kit never shipped is never even visited. It is
+  # also why a payload ADDITION (the next agent the kit ships) needs no edit here.
+  local srcdir="$1" reldir="$2" kind="$3" mode="$4" f base
+  for f in "$srcdir"/*; do
+    [ -f "$f" ] || continue
+    base="$(basename "$f")"
+    [ "$base" = ".DS_Store" ] && continue
+    refresh_file "$f" "$reldir/$base" "$kind" "$mode"
+  done
+}
+
 # Predict whether a scaffold dir would END UP EMPTY after the --full scaffold+seed passes,
 # WITHOUT touching the filesystem (dry-run creates nothing to observe). This MIRRORS the
 # real-run oracle (`ls -A "$d"` at gitkeep time on a fresh target): a scaffold dir is
@@ -305,35 +464,91 @@ migrate_structure_doc() {  # v1.5: rename an installed pre-v1.5 STRUCTURE_RULES.
   fi
 }
 
-seed_structure_doc() {  # seed STRUCTURE_RULES.md, recording THIS kit's abs path into its SEEDS section.
-  # Runs in BOTH modes (it is half of the minimal two-file default). Seed-if-absent, never overwrite.
-  # The payload doc's placeholder line "@@KIT_SEED_PATH@@" becomes a "KIT_PATH=<abs path>" line so a later
-  # on-demand materialization can find the seed templates. The path is passed via the ENVIRONMENT and read
-  # with awk ENVIRON[] so awk applies NO escape processing to it (spaces / backslashes survive verbatim).
-  # Same non-atomicity as the CLAUDE.md create path (direct redirect); guarded by the seed-if-absent check
-  # above, so it can never truncate an existing file, and it never runs when src -ef dst (target-inside-kit
-  # is already aborted in preconditions).
+seed_structure_doc() {  # install STRUCTURE_RULES.md, recording THIS kit's abs path into its SEEDS section.
+  # Runs in BOTH modes (it is half of the minimal two-file default). Seed-if-absent and NEVER overwrite —
+  # EXCEPT under --upgrade-rules (v1.8), which replaces it whole after a dated backup (branch below).
+  # The rendering itself lives in render_structure_doc: the payload doc's placeholder line
+  # "@@KIT_SEED_PATH@@" becomes a "KIT_PATH=<abs path>" line so a later on-demand materialization can
+  # find the seed templates. The seed path writes by direct redirect (same non-atomicity as the
+  # CLAUDE.md create path), guarded by the seed-if-absent check so it can never truncate an existing
+  # file; the upgrade path writes through a temp + rename, because there it IS replacing a live file.
+  # It never runs when src -ef dst (target-inside-kit is already aborted in preconditions).
   # The MIGRATED branch is tested BEFORE the exists test on purpose: in a real run the migration already
   # put the file on disk, in a dry-run it only predicted it, and both must report the SAME line — the
   # dry-run's prediction is only worth reading if it equals what the real run does.
   local src="$PAYLOAD_DIR/$STRUCT_DOC_NAME"
   local dst="$TARGET_DIR/$STRUCT_DOC_NAME"
+  local tmp cur=""
   if [ ! -f "$src" ]; then
-    record "$STRUCT_DOC_NAME" "SKIPPED (no payload source)"
-  elif [ "$STRUCT_MIGRATED" = 1 ]; then
+    record "$STRUCT_DOC_NAME" "SKIPPED (no payload source)"; return 0
+  fi
+
+  # --upgrade-rules (v1.8): REPLACE the installed folder contract with this kit's current copy.
+  # This file rides the OPT-IN rather than the default refresh because it is an EDITABLE project
+  # surface — a project may extend its own per-folder contract — so replacing it is a decision the
+  # adopter makes by passing the flag, not one a routine re-run makes for them. The project's copy
+  # goes into the run's dated backup dir first; identical => no write, no backup, so a second
+  # --upgrade-rules run is a no-op on this axis.
+  # `cur` is the file the upgrade compares against: normally the installed doc, but in a DRY-RUN
+  # that PREDICTED a migration the new name is not on disk yet, so the honest comparand is the
+  # old-name file the real run would have renamed into place.
+  if [ -f "$dst" ]; then
+    cur="$dst"
+  elif [ "$DRY_RUN" = 1 ] && [ "$STRUCT_MIGRATED" = 1 ] && [ -f "$TARGET_DIR/$STRUCT_DOC_OLD" ]; then
+    cur="$TARGET_DIR/$STRUCT_DOC_OLD"
+  fi
+  if [ "$UPGRADE" = 1 ] && [ -n "$cur" ]; then
+    tmp="${TMPDIR:-/tmp}/planner-kit-struct.$$"
+    if ! render_structure_doc "$tmp"; then
+      rm -f "$tmp" 2>/dev/null
+      record "$STRUCT_DOC_NAME" "FAILED (render)"; return 0
+    fi
+    if cmp -s "$tmp" "$cur"; then
+      rm -f "$tmp" 2>/dev/null
+      record "$STRUCT_DOC_NAME" "no change (already current)"; return 0
+    fi
+    if [ "$DRY_RUN" = 1 ]; then
+      rm -f "$tmp" 2>/dev/null
+      REFRESH_BACKUP_MADE=1
+      record "$STRUCT_DOC_NAME" "would upgrade (yours backed up)"; return 0
+    fi
+    if ! backup_before_replace "$STRUCT_DOC_NAME"; then
+      rm -f "$tmp" 2>/dev/null
+      record "$STRUCT_DOC_NAME" "FAILED (backup) — upgrade skipped, your copy untouched"; return 0
+    fi
+    if cp "$tmp" "$dst.pk-struct.tmp" 2>/dev/null && mv "$dst.pk-struct.tmp" "$dst"; then
+      record "$STRUCT_DOC_NAME" "upgraded, yours backed up (kit path recorded)"
+    else
+      record "$STRUCT_DOC_NAME" "FAILED (upgrade write)"
+    fi
+    rm -f "$tmp" "$dst.pk-struct.tmp" 2>/dev/null
+    return 0
+  fi
+
+  if [ "$STRUCT_MIGRATED" = 1 ]; then
     record "$STRUCT_DOC_NAME" "skipped (migrated above — your copy kept)"
   elif [ -e "$dst" ]; then
     record "$STRUCT_DOC_NAME" "skipped (exists)"
   elif [ "$DRY_RUN" = 1 ]; then
     record "$STRUCT_DOC_NAME" "would seed (kit path recorded)"
-  elif PK_KIT_DIR="$KIT_DIR" awk '
-         $0 == "@@KIT_SEED_PATH@@" { print "KIT_PATH=" ENVIRON["PK_KIT_DIR"]; next }
-         { print }
-       ' "$src" > "$dst"; then
+  elif render_structure_doc "$dst"; then
     record "$STRUCT_DOC_NAME" "seeded (kit path recorded)"
   else
     record "$STRUCT_DOC_NAME" "FAILED (write)"
   fi
+}
+
+render_structure_doc() {  # render_structure_doc OUTFILE -> 0 if OUTFILE now holds the doc AS IT SHOULD BE INSTALLED
+  # ONE render path, shared by the seed, the --upgrade-rules replace, and the upgrade's own
+  # already-current comparison — the same single-write-path doctrine settings_merged_bytes follows,
+  # so a preview can never disagree with the write. The payload's "@@KIT_SEED_PATH@@" placeholder
+  # line becomes "KIT_PATH=<abs path>" so a later on-demand materialization can find the seed
+  # templates. The path is passed via the ENVIRONMENT and read with awk ENVIRON[] so awk applies NO
+  # escape processing to it (spaces / backslashes survive verbatim).
+  PK_KIT_DIR="$KIT_DIR" awk '
+        $0 == "@@KIT_SEED_PATH@@" { print "KIT_PATH=" ENVIRON["PK_KIT_DIR"]; next }
+        { print }
+      ' "$PAYLOAD_DIR/$STRUCT_DOC_NAME" > "$1" 2>/dev/null
 }
 
 # ---- hooks + settings (BOTH modes; default-on) ------------------------------
@@ -343,24 +558,13 @@ SETTINGS_SRC="$PAYLOAD_DIR/.claude/settings.json"
 SETTINGS_DST="$TARGET_DIR/.claude/settings.json"
 MERGE_TOOL="$KIT_DIR/lib/merge_settings.py"
 
-seed_hook() {  # seed_hook NAME — only-if-absent, executable at copy time.
-  # `install -m 755` sets the mode AS PART of the copy, so the hook is runnable even where a
-  # separate chmod is denied. Fall back to a plain cp (portable everywhere) and SAY SO, rather
-  # than failing: a copied-but-unmarked hook is fixable, a missing hook is not.
-  local name="$1" src="$HOOKS_SRC_DIR/$1" dst="$TARGET_DIR/.claude/hooks/$1"
-  if [ ! -f "$src" ]; then
-    record "hook .claude/hooks/$name" "SKIPPED (no payload source)"
-  elif [ -e "$dst" ]; then
-    record "hook .claude/hooks/$name" "skipped (exists)"
-  elif [ "$DRY_RUN" = 1 ]; then
-    record "hook .claude/hooks/$name" "would install (mode 755)"
-  elif mkdir -p "$(dirname "$dst")" && install -m 755 "$src" "$dst" 2>/dev/null; then
-    record "hook .claude/hooks/$name" "installed (mode 755)"
-  elif cp "$src" "$dst" 2>/dev/null; then
-    record "hook .claude/hooks/$name" "copied (not marked +x — chmod it if it never fires)"
-  else
-    record "hook .claude/hooks/$name" "FAILED (copy)"
-  fi
+seed_hook() {  # seed_hook NAME — install the hook, and REFRESH it when the installed copy differs (v1.8).
+  # A hook is the kit's own shipped content, and a STALE one is the worst case this installer has:
+  # registered in settings.json, firing on every launch, and enforcing last version's contract while
+  # the CLAUDE.md beside it states this version's. So hooks take the refresh contract, at mode 755 —
+  # a hook that lost its +x never fires, and a silent non-firing gate is indistinguishable from a
+  # passing one.
+  refresh_file "$HOOKS_SRC_DIR/$1" ".claude/hooks/$1" "hook" 755
 }
 
 settings_merged_bytes() {  # settings_merged_bytes OUTFILE -> 0 if OUTFILE now holds the merged result
@@ -451,6 +655,19 @@ seed_settings() {
   rm -f "$tmp" "$SETTINGS_DST.pk-merge.tmp" 2>/dev/null || true
 }
 
+# ---- dev/tools DIAGNOSTICS (BOTH modes; v1.8) ------------------------------
+# The kit ships the tools that VERIFY and MEASURE the enforcement it ships: the e2e battery that
+# red-teams the installed gates, the adherence scorecard that scores per-session workflow fidelity,
+# that scorecard's own fixture guard, and stale_move.sh. REFRESH-IF-DIFFERENT, exec bit carried —
+# a diagnostic pinned to an old version red-teams an old contract and reports green on a project
+# that no longer matches it, which is the one failure a diagnostic must not have.
+# POSITION IS LOAD-BEARING — this runs BEFORE the --full block, not after it. Under --full the
+# gitkeep pass asks `ls -A dev/tools` and its dry-run twin asks "would any seed land here?"; seeding
+# first makes the real answer match the predicted one, so a --full run and its --dry-run agree.
+# Seeding after would leave a real run dropping a .gitkeep the dry-run never predicted.
+# (Before v1.8 dev/tools was seeded inside the --full block; the call moved here, it did not double.)
+refresh_glob "$PAYLOAD_DIR/dev/tools" "dev/tools" "tool" carry
+
 # ---- (a/b/b2) FULL-mode scaffold + seed + gitkeep --------------------------
 # Minimal (default) mode SKIPS this whole block: it pre-creates NO folders and seeds NO templates.
 # The agent materializes each folder on demand per STRUCTURE_RULES.md. --full lays down the
@@ -477,7 +694,7 @@ if [ "$FULL" = 1 ]; then
   seed_glob "$PAYLOAD_DIR/plans"      "plans"
   seed_glob "$PAYLOAD_DIR/dev"        "dev"
   seed_glob "$PAYLOAD_DIR/dev/briefs" "dev/briefs"
-  seed_glob "$PAYLOAD_DIR/dev/tools"  "dev/tools"
+  # dev/tools is seeded ABOVE, in BOTH modes (v1.8) — deliberately not repeated here.
   seed_glob "$PAYLOAD_DIR/.claude/agent-memory/planner" ".claude/agent-memory/planner"
 
   # (b2) .gitkeep every created dir that stayed empty (after seeding)
@@ -499,13 +716,18 @@ for h in $HOOK_NAMES; do
 done
 seed_settings
 
-# ---- model-routing capability set (BOTH modes; v1.4/K10) --------------------
-# The two executor agents (the constructed model routes) + the model-verification skill
-# (the serving-stamp audit) ship with the kit so a fresh project can both KNOW the
-# model-control doctrine in CLAUDE.md and DO it. Only-if-absent, like every seed;
-# seed_glob is non-recursive, so each payload subdir gets its own call.
-seed_glob "$PAYLOAD_DIR/.claude/agents" ".claude/agents"
-seed_glob "$PAYLOAD_DIR/.claude/skills/model-verification" ".claude/skills/model-verification"
+# ---- model-routing capability set (BOTH modes; v1.4/K10, refreshed since v1.8) ----
+# The model-routing agents (fable-executor, opus5-executor, fable-subplanner — the constructed routes,
+# and the GLOB below is what keeps this list from becoming the thing that has to be edited) + the model-verification skill (the serving-stamp
+# audit + the live watchdog) ship with the kit so a fresh project can both KNOW the model-control
+# doctrine in CLAUDE.md and DO it. REFRESH-IF-DIFFERENT: these carry contracts (grants, watch
+# conditions, the launch convention) that the co-installed CLAUDE.md block cites by name, so a stale
+# agent body and a current rules block disagree about the same route.
+# THE AGENTS ARE TAKEN AS A GLOB, deliberately — not a name list — so an agent the payload gains
+# later (a sub-planner route, say) installs and refreshes with no edit to this file. refresh_glob is
+# non-recursive, so each payload subdir gets its own call.
+refresh_glob "$PAYLOAD_DIR/.claude/agents" ".claude/agents" "agent" carry
+refresh_glob "$PAYLOAD_DIR/.claude/skills/model-verification" ".claude/skills/model-verification" "skill" carry
 
 # ---- (c) ROOT CLAUDE.md: create | append-behind-marker | no-op -------------
 # v1.1 change: the rules front door is the ROOT CLAUDE.md (preferred by external
@@ -646,6 +868,18 @@ printf '  %-46s %s\n' "ACTION" "RESULT"
 printf '%s' "$SUMMARY"
 printf '%s\n' "-------------------------------"
 
+# The refresh backup dir is named ONCE, here, instead of on every refreshed row: an adopter who needs
+# it needs the PATH, and repeating it per row would push the table past a readable width. Silent when
+# nothing was refreshed — in that case no dir was created at all.
+if [ "$REFRESH_BACKUP_MADE" = 1 ]; then
+  if [ "$DRY_RUN" = 1 ]; then
+    printf '\nrefresh backups WOULD be kept under: %s/%s\n' "$TARGET_DIR" "$REFRESH_BACKUP_REL"
+  else
+    printf '\nrefresh backups kept under: %s/%s\n' "$TARGET_DIR" "$REFRESH_BACKUP_REL"
+    printf '  (each replaced file under its own project-relative path — diff or restore any of them)\n'
+  fi
+fi
+
 # v1 -> v1.1 migration advice (printed whenever a v1 planner-kit block still lives
 # in .claude/CLAUDE.md). Advice only — the installer NEVER moves or edits user content.
 if [ "$V1_IN_DOTCLAUDE" = 1 ]; then
@@ -682,11 +916,14 @@ if [ "$DRY_RUN" = 1 ]; then
   printf '\ndry-run: nothing was written. Re-run without --dry-run to apply.\n'
 elif [ "$FULL" = 1 ]; then
   printf '\ndone (full). Rules front door: %s/CLAUDE.md; folder contract: %s/%s.\n' "$TARGET_DIR" "$TARGET_DIR" "$STRUCT_DOC_NAME"
-  printf 'Re-running is safe: seeds skip existing files; CLAUDE.md is a no-op once the marker is present.\n'
+  printf 'Re-running is safe: your files are never overwritten (seeds skip existing ones; CLAUDE.md is a no-op once the marker is present);\n'
+  printf 'kit-owned files (hooks, agents, model-verification, dev/tools) refresh only when they DIFFER, and the replaced copy is backed up first.\n'
 else
   printf '\ndone (minimal). Root files: %s/CLAUDE.md + %s/%s (pointer stub at .claude/CLAUDE.md).\n' "$TARGET_DIR" "$TARGET_DIR" "$STRUCT_DOC_NAME"
   printf 'Workflow hooks live in .claude/hooks/ and are registered in .claude/settings.json; PLANNER_KIT_HOOKS=off silences the advisory ones, CRT_MODE=off the deny gate.\n'
+  printf 'Check them any time: bash dev/tools/test_enforcement_e2e.sh (red-teams the installed gates; arms needing a surface you do not have print SKIP, not FAIL).\n'
   printf 'The folder tree is materialized on demand per %s. Want the classic tree up front? Re-run with --full.\n' "$STRUCT_DOC_NAME"
-  printf 'Re-running is safe: STRUCTURE_RULES + seeds skip existing files; CLAUDE.md is a no-op once the marker is present.\n'
+  printf 'Re-running is safe: your files are never overwritten (%s + seeds skip existing ones; CLAUDE.md is a no-op once the marker is present);\n' "$STRUCT_DOC_NAME"
+  printf 'kit-owned files (hooks, agents, model-verification, dev/tools) refresh only when they DIFFER, and the replaced copy is backed up first.\n'
 fi
 exit 0
