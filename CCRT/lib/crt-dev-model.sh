@@ -8,7 +8,8 @@
 # ----------------------------------------------------------------------------
 # POLICY (F2, 2026-08-04 - what this helper is FOR now). The shipped payload/agents carry NO
 # frontmatter model pin: model control on the shipped payload is LAUNCHER-ONLY, and
-# lib/verify_models.sh FAILS on any `model:` key in payload/agents. But the Task tool's `model`
+# lib/verify_models.sh FAILS on any `model:` key in payload/agents OUTSIDE the named allowlist
+# (fable-executor · fable-subplanner · opus5-executor, whose pin IS their route). But the Task tool's `model`
 # param accepts ALIASES ONLY {sonnet|opus|haiku|fable} - no full ids (MEASURED 2026-08-04, live
 # InputValidationError) - so the launcher's whole vocabulary is `fable` · `sonnet` · `haiku`
 # [`opus` is barred at every scope].

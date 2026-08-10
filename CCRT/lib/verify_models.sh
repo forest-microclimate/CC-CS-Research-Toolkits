@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com>
 # verify_models.sh [PAYLOAD_DIR] — fail-closed gate on the MODEL keys the payload ships.
-# EXIT 1 (listing every offender file:line) if a payload/agents frontmatter carries ANY `model:`
+# EXIT 1 (listing every offender file:line) if a payload/agents frontmatter OUTSIDE the named
+# ALLOWLIST (fable-executor · fable-subplanner · opus5-executor) carries ANY `model:`
 # key, or if anything scanned names a BARRED model. WARNINGS (a bare alias outside payload/agents)
 # print but NEVER fail.
 #
@@ -175,7 +176,10 @@ classify() {  # classify <raw-value> [general|project] -> prints "<DENY|WARN|OK|
 # name `opus5-executor`.
 ALLOWLIST='fable-executor fable-subplanner opus5-executor'
 is_allowlisted() {  # is_allowlisted <basename-without-.md> -> exit 0 when the name is on the list
-  case " $ALLOWLIST " in *" $1 "*) return 0;; esac
+  # EXACT-NAME match, never a substring: a `case` glob on a space-padded list admits a basename
+  # that is a RUN of allowlist names ("fable-executor fable-subplanner"), which the contract
+  # above forbids. Iterate the list and compare whole words. (PC8 finding B1, 2026-08-09.)
+  for _a in $ALLOWLIST; do [ "$1" = "$_a" ] && return 0; done
   return 1
 }
 # The one name the claude-opus-5 value carve is scoped to (a subset of ALLOWLIST, deliberately).

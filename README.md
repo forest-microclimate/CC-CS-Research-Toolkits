@@ -97,12 +97,12 @@ and [`CSRTB/README.md`](CSRTB/README.md) orients you first.
 
 Counted from the trees in this repository, not copied from prose:
 
-- **CCRT** — **47 skills** and **18 agents**, plus 16 always-on rules and 4 slash commands.
-  (`ls payload/skills` returns 47 directories, each holding a `SKILL.md`; `payload/agents` holds 18
+- **CCRT** — **33 skills** and **16 agents**, plus 16 always-on rules and 4 slash commands.
+  (`ls payload/skills` returns 33 directories, each holding a `SKILL.md`; `payload/agents` holds 16
   `.md` files.)
-- **CSRTB** — **52 skills** and **18 profiles**, of which **19 skills carry a `kernel.py` sidecar**
+- **CSRTB** — **57 skills** and **21 profiles**, of which **19 skills carry a `kernel.py` sidecar**
   of fail-closed gate functions. (All three read from the built `crt_science_bundle.json`, whose
-  `counts` field reports 52 and 18; the same totals come back from counting `bundle_src/skills` and
+  `counts` field reports 57 and 21; the same totals come back from counting `bundle_src/skills` and
   `bundle_src/profiles`, and 19 entries carry `has_sidecar`.)
 
 The totals differ by design, and a matched pair would tell you nothing: every delta traces to a
