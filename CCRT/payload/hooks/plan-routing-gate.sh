@@ -10,7 +10,9 @@
 # ─── L4 REWORK (2026-08-04, O-series: opus-5 as CONSTRAINED SUPERVISED USE) ────────
 #   claude-opus-5 is no longer barred outright on the CC side; it is legal in exactly one
 #   shape — a tightly-scoped CHILD under a Planner's active watch, launched through the
-#   project-scoped `opus5-executor` agent. Three consequences here:
+#   PINNED `opus5-executor` route agent — it ships in the general payload, and what admits its
+#   pin is the build gate's NAMED allowlist of three routes, never the directory it sits in.
+#   Three consequences here:
 #   (a) A track whose executor is `delegate:opus5-executor` is LEGAL, but ONLY when the
 #       track carries a SUPERVISION MARKER (`"supervised": true` or `"supervision":
 #       "planner-watch"`). An UNSUPERVISED opus5-executor track is a new FAIL: the marker
@@ -287,7 +289,7 @@ SELF_RUN_FIELDS = ("owner", "task", "tradeoff", "brief_ref")
 
 # L4 valid model_tier tokens: kernel TIER_TABLE keys (+ the non-delegate sentinel n/a).
 # T1_supervised (2026-08-04) = the constrained supervised-executor class: the model comes from the
-# project-scoped agent's frontmatter, not from a tier lookup, so the token names the SUPERVISION
+# route agent's OWN frontmatter, not from a tier lookup, so the token names the SUPERVISION
 # ARRANGEMENT rather than a model. It is valid ONLY on a track that also carries the marker below.
 VALID_TIERS = ("T1", "T1_hardest", "T1_supervised", "T2", "T3", "T4")
 
@@ -354,7 +356,7 @@ def banned_model(value):
     if "claude-opus-5" in low:
         return ("claude-opus-5 is BANNED as a raw model FIELD value, any tier, any call. Its one "
                 "legal shape is executor delegate:opus5-executor + a supervision marker, with the "
-                "model coming from that project-scoped agent's own frontmatter")
+                "model coming from that route agent's own frontmatter pin")
     if re.match(r"^opus([^a-z0-9-].*)?$", low):
         return ("the bare alias `opus` resolves to Opus 5 on Claude Code >=2.1.219 and is "
                 "BANNED. Name a tier (T1|T1_hardest|T2|T3|T4) or an allowed model id")
@@ -608,7 +610,7 @@ if n_delegate > 1 and not (WAVES_SECTION.search(plan) or WAVE_WORD.search(plan))
 #       a bare substring is still the right instrument: nothing else can read it.
 #   (2) MODEL-FIELD assignments anywhere in the raw text — `model:`/`model_tier:`/
 #       `model_id:` set to claude-opus-5. A raw model field is never the sanctioned route:
-#       supervised use goes through the project-scoped agent's own frontmatter pin, named
+#       supervised use goes through the route agent's own frontmatter pin, named
 #       in the track as executor + the supervision marker.
 # Everything else — an executor name, an owner, a task or tradeoff sentence that mentions
 # the model — is now free to say so. The `opus`/`opusplan` ALIAS regex is unchanged: it was
@@ -627,7 +629,7 @@ if re.search(r"\bmodel(?:_tier|_id)?\b\s*[:=]\s*[\"'`]?[^\"'`,}\n]*claude-opus-5
     fails.append("L4 tier-ban: the routing block sets a model/tier FIELD to claude-opus-5. "
                  "A raw model field is never the sanctioned route — supervised use is "
                  "declared as executor delegate:opus5-executor plus \"supervised\": true, "
-                 "and the model itself comes from that project-scoped agent's frontmatter.")
+                 "and the model itself comes from that route agent's own frontmatter pin.")
 if re.search(r"\bmodel(?:_tier|_id)?\b\s*[:=]\s*[\"'`]?(?:opus(?:plan)?)(?![a-z0-9-])",
              block_text, re.I) and not any("alias" in f for f in fails):
     fails.append("L4 tier-ban: the routing block sets a model/tier to the bare alias "

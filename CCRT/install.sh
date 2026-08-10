@@ -8,11 +8,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 PAYLOAD="$SCRIPT_DIR/payload"
-PAYLOAD_PROJECT="$SCRIPT_DIR/payload-project"     # project-specialty carriers (routed per-project, never into ~/.claude)
-PROJECT_MANIFEST="$PAYLOAD_PROJECT/project_manifest.tsv"
-# The fillable project-routes MASTER lives IN THE BUNDLE (repo-owned, authoritative). It ships BLANK;
-# the user fills it once, here, and install APPLIES it. CRT_ROUTES_MASTER overrides the path (testing).
-ROUTES_MASTER="${CRT_ROUTES_MASTER:-$PAYLOAD_PROJECT/project_routes.tsv}"
+# [RETIRED 2026-08-09, PC3] PROJECT-SPECIALTY ROUTING — the whole feature is gone from this installer:
+# `payload-project/` was DELETED and its carriers moved to the sibling `CCRT_specialists/` tree.
+# REPLACEMENT MODEL: MANUAL install — copy the wanted item out of `CCRT_specialists/<bucket>/{agents,skills}/`
+# into the project's own `.claude/{agents,skills}/`. That tree has VARIABLE DEPTH (some buckets hold
+# agents/ + skills/ directly, others nest a sub-bucket), which is one reason it is browsed by hand rather
+# than routed by name. Retired here: $PAYLOAD_PROJECT · $PROJECT_MANIFEST · $ROUTES_MASTER ·
+# --project-items · --project-dest · --project-bundle · --apply-project-routes · route_project_items() ·
+# apply_project_routes() · project_routes.tsv (both the master and the derived applied-record).
 LIB="$SCRIPT_DIR/lib"
 CLAUDE_DIR="${CLAUDE_HOME:-$HOME/.claude}"        # CLAUDE_HOME override aids testing
 TS="$(date +%Y%m%d-%H%M%S)"
@@ -43,28 +46,11 @@ install.sh [tiers] [options]
     --interactive, -i     numbered-menu front-end: interactively pick components (drives --select)
                           and scope (global, then optional per-root sets drive --root/--discipline-trees).
                           Composes + runs one install.sh call per scope pass. Combine with --dry-run to preview.
-  Project routing (route project-specialty items to a project's OWN .claude/, not ~/.claude):
-    --project-items LIST  comma-list of project-specialty item names from payload-project/ (agents
-                          and/or skills), validated against payload-project/project_manifest.tsv.
-                          Unknown name => fail-closed (exit 2, NOTHING written). Requires --project-dest.
-    --project-dest DIR    the project root; each item installs into DIR/.claude/{agents,skills}/
-                          (mkdir -p; any pre-existing same-name target is backed up first). Usable
-                          ALONE or alongside tiers: general tiers install to ~/.claude, while project-
-                          specialty items route per project (their tokens are project-specific by
-                          design and never enter the general payload).
-    --project-bundle LIST comma-list of BUNDLE names (project_manifest.tsv col 6). Expands to every member
-                          item, then behaves like --project-items (requires --project-dest; unknown bundle
-                          => exit 2, NOTHING written, valid names listed). Unioned with --project-items.
-    --apply-project-routes  route every bundle declared in the fillable MASTER that ships in the bundle,
-                          payload-project/project_routes.tsv, to its project root(s). That repo master is
-                          authoritative (edit it there); it ships BLANK. Rows are `bundle<TAB>dest` (leading
-                          ~ expanded; one bundle may have many dest rows). Every row is validated (unknown
-                          bundle / missing dest dir => exit 2, nothing written) before any routing. A tier
-                          install AUTO-applies the master when it has active rows, so this flag is the
-                          explicit on-demand trigger (usable alone or with tiers). On apply, ~/.claude/
-                          project_routes.tsv is (over)written as a DERIVED applied-record (a receipt, read
-                          by nothing). Honors --dry-run; re-runs idempotent. Deleting a master row stops
-                          future refreshes (already-placed items stay).
+  Project specialists (RETIRED 2026-08-09 — now a MANUAL install):
+    The --project-items / --project-dest / --project-bundle / --apply-project-routes flags are GONE
+    along with payload-project/. To give ONE project a specialist, copy it yourself out of
+    CCRT_specialists/<bucket>/{agents,skills}/ into that project's own .claude/{agents,skills}/.
+    Passing a retired flag exits 2 with this same pointer and writes nothing.
   Options:
     --dry-run     print actions, write nothing
     --no-verify   skip the scrub_verify.sh + doc-status + coupling gates
@@ -74,7 +60,15 @@ U
 
 CORE=0; ERGO=0; MEM=0; PERSONAL=0; DRY=0; VERIFY=1
 SELECT=""; SUBSET=""; ALLOW_DEFERRED=0; ROOT=""; DISCIPLINE_MODE=auto; INTERACTIVE=0
-PROJECT_ITEMS=""; PROJECT_DEST=""; PROJECT_BUNDLES=""; APPLY_ROUTES=0
+# [RETIRED 2026-08-09, PC3] PROJECT_ITEMS / PROJECT_DEST / PROJECT_BUNDLES / APPLY_ROUTES lived here.
+retired_project_flag(){   # the in-band tombstone that fires where the flag was actually USED
+  echo "error: '$1' was RETIRED 2026-08-09 — project-specialty routing is gone from install.sh." >&2
+  echo "       payload-project/ was deleted; its carriers live in CCRT_specialists/ and install MANUALLY:" >&2
+  echo "         cp -R \"$SCRIPT_DIR/CCRT_specialists/<bucket>/agents/<name>.md\" <project>/.claude/agents/" >&2
+  echo "         cp -R \"$SCRIPT_DIR/CCRT_specialists/<bucket>/skills/<name>\"    <project>/.claude/skills/" >&2
+  echo "       (buckets vary in depth — browse the tree; nothing written.)" >&2
+  exit 2
+}
 while [ $# -gt 0 ]; do
   case "$1" in
     --core) CORE=1;; --ergonomics) ERGO=1;; --memories) MEM=1;; --personal) PERSONAL=1;;
@@ -86,10 +80,7 @@ while [ $# -gt 0 ]; do
     --discipline-trees|--discipline)
       DISCIPLINE_MODE="$2"; shift
       case "$DISCIPLINE_MODE" in auto|copy|skip) ;; *) echo "error: --discipline-trees must be auto|copy|skip (got '$DISCIPLINE_MODE')" >&2; exit 2;; esac;;
-    --project-items) PROJECT_ITEMS="$2"; shift;;
-    --project-dest)  PROJECT_DEST="$2"; shift;;
-    --project-bundle) PROJECT_BUNDLES="$2"; shift;;
-    --apply-project-routes) APPLY_ROUTES=1;;
+    --project-items|--project-dest|--project-bundle|--apply-project-routes) retired_project_flag "$1";;
     --interactive|-i) INTERACTIVE=1;;
     --dry-run) DRY=1;; --no-verify) VERIFY=0;;
     -h|--help) usage; exit 0;;
@@ -108,20 +99,19 @@ done
 if [ "$INTERACTIVE" = 1 ]; then
   # Fail-closed on mis-invocation: --interactive COMPOSES its own tier/selection/root flags per pass,
   # so combining it with hand-typed ones would silently drop the user's intent. Reject instead.
+  # (the retired --project-* flags exit 2 at parse time, so they can never reach this guard.)
   if [ "$CORE" = 1 ] || [ "$ERGO" = 1 ] || [ "$MEM" = 1 ] || [ "$PERSONAL" = 1 ] \
      || [ -n "$SELECT" ] || [ -n "$SUBSET" ] || [ -n "$ROOT" ] || [ "$ALLOW_DEFERRED" = 1 ] \
-     || [ -n "$PROJECT_ITEMS" ] || [ -n "$PROJECT_DEST" ] || [ -n "$PROJECT_BUNDLES" ] || [ "$APPLY_ROUTES" = 1 ] \
      || [ "$DISCIPLINE_MODE" != auto ]; then
-    echo "error: --interactive composes its own tier/selection/root/routing flags per pass; do not combine it with" >&2
+    echo "error: --interactive composes its own tier/selection/root flags per pass; do not combine it with" >&2
     echo "       --core/--ergonomics/--memories/--personal/--all/--select/--manifest-subset/--root/--allow-deferred/" >&2
-    echo "       --discipline-trees/--project-items/--project-dest/--project-bundle/--apply-project-routes. (--dry-run and --no-verify ARE allowed.)" >&2
+    echo "       --discipline-trees. (--dry-run and --no-verify ARE allowed.)" >&2
     exit 2
   fi
   _picker="$LIB/interactive_select.py"
   [ -f "$_picker" ] || { echo "FATAL: interactive front-end not found: $_picker" >&2; exit 1; }
   _prc=0
-  _lines="$(python3 "$_picker" --manifest "$PAYLOAD/coupling_manifest_v1.tsv" --resolver "$LIB/select_resolve.py" \
-            --project-manifest "$PROJECT_MANIFEST" --routes-file "$ROUTES_MASTER")" || _prc=$?
+  _lines="$(python3 "$_picker" --manifest "$PAYLOAD/coupling_manifest_v1.tsv" --resolver "$LIB/select_resolve.py")" || _prc=$?
   if [ "$_prc" -ne 0 ]; then
     echo "interactive selection aborted (exit $_prc) — nothing installed." >&2
     exit "$_prc"
@@ -152,31 +142,28 @@ EOF
 fi
 # DEFAULT: if no component-selecting flag was given (only --root/--dry-run/--no-verify or nothing),
 # install the standard set (core+ergonomics+memories). A selection (--select/--manifest-subset) sets
-# CORE=1 itself, so it is excluded here. --project-items is ALSO excluded: a pure project-routing call
-# routes ONLY to the named project (no implicit ~/.claude install). This must run AFTER parsing so
-# `--root DIR` alone still installs the full set (the earlier `$#-eq 0` test wrongly treated `--root DIR` as an explicit selection).
-if [ "$CORE" = 0 ] && [ "$ERGO" = 0 ] && [ "$MEM" = 0 ] && [ "$PERSONAL" = 0 ] && [ -z "$SELECT" ] && [ -z "$SUBSET" ] && [ -z "$PROJECT_ITEMS" ] && [ -z "$PROJECT_BUNDLES" ] && [ "$APPLY_ROUTES" = 0 ]; then
+# CORE=1 itself, so it is excluded here. This must run AFTER parsing so `--root DIR` alone still
+# installs the full set (the earlier `$#-eq 0` test wrongly treated `--root DIR` as an explicit selection).
+# [RETIRED 2026-08-09, PC3] the retired --project-items/--project-bundle/--apply-project-routes were
+# also excluded here, because a PURE project-routing call installed nothing into ~/.claude. With the
+# feature gone every invocation is a tier install, which is why ANY_TIER disappeared below.
+if [ "$CORE" = 0 ] && [ "$ERGO" = 0 ] && [ "$MEM" = 0 ] && [ "$PERSONAL" = 0 ] && [ -z "$SELECT" ] && [ -z "$SUBSET" ]; then
   CORE=1; ERGO=1; MEM=1
 fi
 [ "$MEM" = 1 ] && CORE=1   # memories append to the core CLAUDE.md, which must exist
 # --root: per-root scoping — install into a repo-local dir instead of the global ~/.claude
 [ -n "$ROOT" ] && CLAUDE_DIR="$ROOT"
 BACKUP="$CLAUDE_DIR/backups/pre-toolkit-$TS"   # recompute after any --root override
-ROUTES_RECORD="$CLAUDE_DIR/project_routes.tsv"                     # DERIVED applied-record (a receipt; overwritten from the master on apply; read by nothing)
+# [RETIRED 2026-08-09, PC3] $ROUTES_RECORD (~/.claude/project_routes.tsv, the DERIVED applied-record)
+# was written here-abouts on every route apply. No apply path remains, so nothing writes it; an
+# already-installed copy from a pre-retirement run is inert (it was read by nothing even then).
 [ -n "$SELECT" ] && [ -n "$SUBSET" ] && { echo "error: --select and --manifest-subset are mutually exclusive" >&2; exit 2; }
 
-# CLI project routing (--project-items and/or --project-bundle) requires --project-dest, and a bare
-# --project-dest with no routing request is an error. (--apply-project-routes carries its own dests
-# from the repo project-routes master, so it does NOT require --project-dest.)
-_routing_req=0
-{ [ -n "$PROJECT_ITEMS" ] || [ -n "$PROJECT_BUNDLES" ]; } && _routing_req=1
-if { [ "$_routing_req" = 1 ] && [ -z "$PROJECT_DEST" ]; } || { [ "$_routing_req" = 0 ] && [ -n "$PROJECT_DEST" ]; }; then
-  echo "error: project routing (--project-items/--project-bundle) and --project-dest must be given together (got only one)" >&2; exit 2
-fi
-# ANY_TIER: did the user ask for a ~/.claude tier install at all? A PURE project-routing call
-# (--project-items with no tier) must NOT create the ~/.claude backup / managed-set snapshot below.
-ANY_TIER=0
-if [ "$CORE" = 1 ] || [ "$ERGO" = 1 ] || [ "$MEM" = 1 ] || [ "$PERSONAL" = 1 ]; then ANY_TIER=1; fi
+# [RETIRED 2026-08-09, PC3] two preconditions lived here and are gone with the flags they policed:
+# the --project-items/--project-bundle <-> --project-dest pairing check, and ANY_TIER (which existed
+# ONLY to tell a pure project-routing call — which touched no ~/.claude — apart from a tier install,
+# so it could skip the backup snapshot). EVERY invocation is now a tier install, so the blocks ANY_TIER
+# guarded (backup snapshot, DONE line, verify hint) run unconditionally.
 
 # ── SHADOW GUARD ─────────────────────────────────────────────────────────────
 # A repo-local (--root) install STACKS on top of the global ~/.claude — BOTH load (per the toolkit's
@@ -217,177 +204,17 @@ fi
 log(){ printf '  %s\n' "$*"; }
 run(){ if [ "$DRY" = 1 ]; then printf 'DRYRUN:'; printf ' %q' "$@"; echo; else "$@"; fi; }
 
-# ── project-specialty routing helpers (payload-project/ -> a project's OWN .claude/) ──────────
-# project_manifest_kind NAME -> prints the kind (agent|skill) for NAME from project_manifest.tsv, or
-#   nothing if NAME is not a listed item. Skips `#` comment lines and the header row (col1 == "name").
-project_manifest_kind(){
-  [ -f "$PROJECT_MANIFEST" ] || return 0
-  awk -F'\t' -v want="$1" '
-    /^[[:space:]]*#/ { next } NF==0 { next } $1=="name" { next }
-    $1==want { print $2; exit }
-  ' "$PROJECT_MANIFEST"
-}
-# project_manifest_names -> every valid item name (one per line), for error/usage listings.
-project_manifest_names(){
-  [ -f "$PROJECT_MANIFEST" ] || return 0
-  awk -F'\t' '/^[[:space:]]*#/ { next } NF==0 { next } $1=="name" { next } { print $1 }' "$PROJECT_MANIFEST"
-}
-# project_manifest_bundles -> every distinct bundle name (col 6), one per line (error listings + picker).
-project_manifest_bundles(){
-  [ -f "$PROJECT_MANIFEST" ] || return 0
-  awk -F'\t' '/^[[:space:]]*#/ { next } NF==0 { next } $1=="name" { next } $6!="" { print $6 }' "$PROJECT_MANIFEST" | LC_ALL=C sort -u
-}
-# project_manifest_items_for_bundle NAME -> item names (col 1) whose bundle (col 6) == NAME, one per line
-#   (empty output => NAME is not a known bundle; callers treat that as fail-closed).
-project_manifest_items_for_bundle(){
-  [ -f "$PROJECT_MANIFEST" ] || return 0
-  awk -F'\t' -v want="$1" '/^[[:space:]]*#/ { next } NF==0 { next } $1=="name" { next } $6==want { print $1 }' "$PROJECT_MANIFEST"
-}
-# _bundle_missing_srcs NAME -> print " item" for each bundle member whose payload-project/ source is absent
-#   (a packaging defect; keeps apply_project_routes fail-closed rather than aborting mid-copy under set -e).
-_bundle_missing_srcs(){
-  local m k out=""
-  while IFS= read -r m; do
-    [ -z "$m" ] && continue
-    k="$(project_manifest_kind "$m")"
-    if [ "$k" = agent ] && [ ! -f "$PAYLOAD_PROJECT/agents/$m.md" ]; then out="$out $m"; fi
-    if [ "$k" = skill ] && [ ! -d "$PAYLOAD_PROJECT/skills/$m" ];   then out="$out $m"; fi
-  done <<EOF
-$(project_manifest_items_for_bundle "$1")
-EOF
-  printf '%s' "$out"
-}
-# route_project_items $1=comma-list-of-item-names $2=project-dest-root — copy each requested payload-project/
-#   item into <dest>/.claude/, backing up any pre-existing same-name target FIRST (into
-#   .claude/backups/pre-project-$TS/). Additive + idempotent (a re-run overwrites with byte-identical source;
-#   the skill copy uses the `src/.` contents form so a re-run never nests). Honors --dry-run via run(). Names
-#   are pre-validated in preflight. Called by the CLI path AND once per row by apply_project_routes.
-route_project_items(){
-  local items="$1" dest="$2"
-  local dest_root="$dest/.claude"
-  local pbackup="$dest_root/backups/pre-project-$TS"
-  log "[project] routing specialty items -> $dest_root"
-  local item kind _nl
-  _nl="$(printf '%s' "$items" | tr ',' '\n')"
-  while IFS= read -r item; do
-    item="$(printf '%s' "$item" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-    [ -z "$item" ] && continue
-    kind="$(project_manifest_kind "$item")"
-    if [ "$kind" = agent ]; then
-      if [ -f "$dest_root/agents/$item.md" ]; then      # back up a pre-existing target FIRST
-        run mkdir -p "$pbackup/agents"; run cp -R "$dest_root/agents/$item.md" "$pbackup/agents/"
-        log "  backed up existing agents/$item.md -> $pbackup/agents/"
-      fi
-      run mkdir -p "$dest_root/agents"
-      run cp "$PAYLOAD_PROJECT/agents/$item.md" "$dest_root/agents/"; log "  +agent $item"
-    elif [ "$kind" = skill ]; then
-      if [ -d "$dest_root/skills/$item" ]; then          # back up a pre-existing target FIRST
-        run mkdir -p "$pbackup/skills"; run cp -R "$dest_root/skills/$item" "$pbackup/skills/"
-        log "  backed up existing skills/$item/ -> $pbackup/skills/"
-      fi
-      run mkdir -p "$dest_root/skills/$item"
-      run cp -R "$PAYLOAD_PROJECT/skills/$item/." "$dest_root/skills/$item/"; log "  +skill $item"
-    fi
-  done <<EOF
-$_nl
-EOF
-}
-
-# ── project-routes MASTER helpers (the bundle -> project-dest map lives in the bundle: $ROUTES_MASTER) ──
-# read_routes_active FILE — emit one `bundle<TAB>expanded_dest` line per ACTIVE row of FILE (skips `#`
-#   comments + blank lines; trims surrounding whitespace on each field; expands a leading `~`/`~/` in the
-#   dest to $HOME at read time). Internal spaces in a dest path are preserved (project dirs have spaces).
-#   Parameterized on the file so it reads the repo master (and, in tests, a CRT_ROUTES_MASTER override).
-read_routes_active(){
-  local _f="$1"
-  [ -f "$_f" ] || return 0
-  awk -F'\t' -v home="$HOME" '
-    /^[[:space:]]*#/ { next }
-    /^[[:space:]]*$/ { next }
-    {
-      b=$1; d=$2
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", b)
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", d)
-      if (b=="") next
-      if (d=="~") d=home
-      else if (substr(d,1,2)=="~/") d=home substr(d,2)
-      printf "%s\t%s\n", b, d
-    }
-  ' "$_f"
-}
-# write_routes_record ROWS — write the DERIVED applied-record to $ROUTES_RECORD (~/.claude): a receipt of
-#   what was just applied, overwritten on every apply and READ BY NOTHING. It is NOT a second master —
-#   its header points back at the repo master as the one thing to edit. Honors --dry-run.
-write_routes_record(){
-  local _rows="$1"
-  if [ "$DRY" = 1 ]; then log "DRYRUN: write derived applied-record -> $ROUTES_RECORD"; return 0; fi
-  run mkdir -p "$CLAUDE_DIR"
-  { printf '# project_routes.tsv — DERIVED APPLIED-RECORD (do NOT edit; overwritten on every apply).\n'
-    printf '# The authoritative master is payload-project/project_routes.tsv in the toolkit repo — edit\n'
-    printf '# THAT, then re-run: install.sh --apply-project-routes\n'
-    printf '# Applied %s. Rows below are the bundle<TAB>dest routes applied this run (~ already expanded).\n' "$TS"
-    printf '%s\n' "$_rows"
-  } > "$ROUTES_RECORD"
-  log "[routes] wrote derived applied-record -> $ROUTES_RECORD"
-}
-# validate_routes_master — READ-ONLY fail-closed validation of the project-routes master's ACTIVE rows:
-#   unknown bundle / nonexistent dest dir / missing member source => print the offending row(s) + exit 2.
-#   A blank or absent master passes (return 0; nothing to validate). Runs BOTH in PREFLIGHT (so an invalid
-#   master aborts the WHOLE command before any tier write — atomic) AND as apply_project_routes' PHASE 1
-#   (ONE definition of the rules, reused — never duplicated).
-validate_routes_master(){
-  [ -f "$ROUTES_MASTER" ] || return 0
-  local active; active="$(read_routes_active "$ROUTES_MASTER")"
-  [ -n "$active" ] || return 0
-  local _tab; _tab="$(printf '\t')"
-  local bad="" _b _d _miss
-  while IFS="$_tab" read -r _b _d; do
-    [ -z "$_b" ] && continue
-    if [ -z "$(project_manifest_items_for_bundle "$_b")" ]; then bad="$bad
-  unknown bundle '$_b' -> '$_d'"; continue; fi
-    if [ ! -d "$_d" ]; then bad="$bad
-  dest does not exist: '$_d' (bundle '$_b')"; continue; fi
-    _miss="$(_bundle_missing_srcs "$_b")"
-    [ -n "$_miss" ] && bad="$bad
-  missing source(s) for bundle '$_b':$_miss"
-  done <<EOF
-$active
-EOF
-  if [ -n "$bad" ]; then
-    echo "error: invalid route(s) in the project-routes master $ROUTES_MASTER (nothing written):" >&2
-    printf '%s\n' "$bad" >&2
-    echo "       valid bundles: $(project_manifest_bundles | tr '\n' ' ')" >&2
-    exit 2
-  fi
-  return 0
-}
-# apply_project_routes — route every ACTIVE row of the repo MASTER ($ROUTES_MASTER). Validate ALL rows FIRST
-#   (unknown bundle / nonexistent dest dir / missing member source => fail-closed exit 2, NOTHING written),
-#   THEN route each (bundle,dest) through route_project_items so every existing guarantee holds (backup-first,
-#   idempotent, --dry-run), THEN write the derived applied-record. Deleting a master row stops future
-#   refreshes; it never uninstalls already-placed items.
-apply_project_routes(){
-  if [ ! -f "$ROUTES_MASTER" ]; then log "[routes] no project-routes master at $ROUTES_MASTER — nothing to apply."; return 0; fi
-  local active; active="$(read_routes_active "$ROUTES_MASTER")"
-  if [ -z "$active" ]; then log "[routes] project-routes master $ROUTES_MASTER has no active rows — nothing to apply."; return 0; fi
-  local _tab; _tab="$(printf '\t')"
-  # PHASE 1 — validate EVERY row before ANY write (reuses validate_routes_master; exits 2, nothing routed).
-  # For a tier install this ALSO ran in preflight (so the whole command already aborted atomically on a bad
-  # master); re-running here is cheap defense-in-depth and covers the pure --apply-project-routes path.
-  validate_routes_master
-  # PHASE 2 — route each validated row through the existing per-project path, with a per-row summary
-  log "[routes] applying project-routes master ($ROUTES_MASTER):"
-  while IFS="$_tab" read -r _b _d; do
-    [ -z "$_b" ] && continue
-    local _items; _items="$(project_manifest_items_for_bundle "$_b" | tr '\n' ',' | sed 's/,$//')"
-    route_project_items "$_items" "$_d"
-    log "  applied: $_b -> $_d/.claude/"
-  done <<EOF
-$active
-EOF
-  # PHASE 3 — record what was applied (a derived receipt in ~/.claude; the master stays the source of truth)
-  write_routes_record "$active"
-}
+# ── [RETIRED 2026-08-09, PC3] project-specialty routing helpers ──────────────────────────────
+# ~172 lines lived here and are gone with the feature: project_manifest_kind / project_manifest_names /
+# project_manifest_bundles / project_manifest_items_for_bundle / _bundle_missing_srcs (they parsed
+# payload-project/project_manifest.tsv, a file that no longer exists), route_project_items (the copy
+# into <dest>/.claude/{agents,skills}/), and the project-routes MASTER machinery — read_routes_active,
+# write_routes_record, validate_routes_master, apply_project_routes.
+# REPLACEMENT: MANUAL install from CCRT_specialists/<bucket>/{agents,skills}/ into a project's own
+# .claude/. Nothing in this installer reads or writes project_routes.tsv any more.
+# IF A ROUTED TREE IS EVER REVIVED: it needs a manifest of its own AND its own gate coverage — the
+# retired tree was watched by no gate (lib/verify_models.sh scans payload/ only), which is what made
+# it cheap to leave behind and expensive to trust.
 
 # write_build_stamp — record WHICH toolkit build this install deployed + WHEN, to a
 #   known file the hooks read at runtime so every log row self-identifies its build
@@ -463,86 +290,45 @@ fi
 if [ "$VERIFY" = 1 ] && [ -f "$LIB/check_current_documents.py" ]; then
   python3 "$LIB/check_current_documents.py" "$PAYLOAD" >/dev/null || { echo "FATAL: DDA category-contract check failed (a durable doc violates its DDC category contract). Run: python3 lib/check_current_documents.py payload"; exit 1; }
 fi
-# model-policy gate (fail-closed): no agent frontmatter or settings fragment may name a barred model value
-# (claude-opus-5, bare `opus`, `opusplan` — the bare alias resolves to Opus 5 in Claude Code >=2.1.219).
+# model-policy gate (fail-closed). FOUR distinct failure modes, not one — a fix-it message that names
+# only the barred-value case teaches an incomplete contract to a blind session, which then "fixes" the
+# wrong thing. The gate's own FAIL text names which mode fired; this hint enumerates the set:
+#   (1) BARRED VALUE      — `claude-opus-5`, bare `opus`, or `opusplan` anywhere in payload agents or
+#                           settings fragments (a bare alias resolves to Opus 5 on CC >= 2.1.219 and
+#                           silently RE-resolves whenever the launcher remaps it).
+#   (2) UNALLOWLISTED PIN — ANY `model:` key in a payload/agents frontmatter outside the named allowlist.
+#                           Outside that list the pin ITSELF is the defect, barred value or not: a shipped
+#                           rank-3 pin overrides the launcher's tier choice in every session that installs it.
+#   (3) MISSING PIN       — an ALLOWLISTED route with NO pin. For those agents the pin IS the route, so its
+#                           absence is as much a defect as a stray pin is on an ordinary agent.
+#   (4) PARITY DRIFT      — an allowlisted route whose payload copy and kit copy are not byte-identical
+#                           (`cmp`), including a kit counterpart that is missing outright.
 if [ "$VERIFY" = 1 ] && [ -f "$LIB/verify_models.sh" ]; then
-  bash "$LIB/verify_models.sh" "$PAYLOAD" >/dev/null || { echo "FATAL: model-policy gate failed (a barred model value survives in payload). Run: bash lib/verify_models.sh payload"; exit 1; }
+  bash "$LIB/verify_models.sh" "$PAYLOAD" >/dev/null || {
+    echo "FATAL: model-policy gate failed — one of: a BARRED model value in payload; an UNALLOWLISTED"
+    echo "       model: pin in payload/agents frontmatter; an ALLOWLISTED route MISSING the pin that IS"
+    echo "       that route; or PAYLOAD<->KIT PARITY DRIFT on an allowlisted route."
+    echo "       Run for the specific finding: bash lib/verify_models.sh payload"
+    exit 1; }
 fi
 
-# --project-bundle: expand each requested bundle -> its member items (fail-closed on an unknown bundle),
-# then UNION with any --project-items. Runs in preflight (before any write) so an unknown bundle exits 2
-# with NOTHING written; the unioned item list then flows through the name-validation + copy below unchanged.
-if [ -n "$PROJECT_BUNDLES" ]; then
-  [ -f "$PROJECT_MANIFEST" ] || { echo "FATAL: project manifest not found: $PROJECT_MANIFEST" >&2; exit 2; }
-  _bad_b=""; _bundle_items=""
-  _nlb="$(printf '%s' "$PROJECT_BUNDLES" | tr ',' '\n')"
-  while IFS= read -r _bn; do
-    _bn="$(printf '%s' "$_bn" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-    [ -z "$_bn" ] && continue
-    _members="$(project_manifest_items_for_bundle "$_bn")"
-    if [ -z "$_members" ]; then _bad_b="$_bad_b $_bn"; continue; fi
-    _bundle_items="$_bundle_items
-$_members"
-  done <<EOF
-$_nlb
-EOF
-  if [ -n "$_bad_b" ]; then
-    echo "error: unknown --project-bundle name(s):$_bad_b" >&2
-    echo "       valid bundles (from $PROJECT_MANIFEST):" >&2
-    project_manifest_bundles | sed 's/^/         /' >&2
-    exit 2
-  fi
-  # union bundle members into PROJECT_ITEMS (dedup, preserving first-seen order)
-  PROJECT_ITEMS="$(printf '%s\n%s\n' "$(printf '%s' "$PROJECT_ITEMS" | tr ',' '\n')" "$_bundle_items" \
-    | awk '{ gsub(/^[[:space:]]+|[[:space:]]+$/,"") } NF && !seen[$0]++' | tr '\n' ',' | sed 's/,$//')"
-fi
+# ── [RETIRED 2026-08-09, PC3] project preflight validation ───────────────────────────────────
+# Three fail-closed preflight blocks lived here (~63 lines): --project-bundle expansion into member
+# items, --project-items name validation against project_manifest.tsv (which ran even under
+# --no-verify, since an unknown name must never reach a copy), and validate_routes_master. All three
+# policed inputs that can no longer be supplied — the flags now exit 2 at parse time — so the
+# fail-closed property they carried is preserved by that earlier refusal, not lost with them.
 
-# project-items name validation (fail-closed; runs EVEN under --no-verify — an unknown name must never
-# reach the copy). Validates EVERY requested name against project_manifest.tsv BEFORE any write; any
-# unknown (or a name whose source file/dir is missing) => exit 2 with NOTHING written. Covers bundle
-# members too (they were unioned into PROJECT_ITEMS above).
-if [ -n "$PROJECT_ITEMS" ]; then
-  [ -f "$PROJECT_MANIFEST" ] || { echo "FATAL: project manifest not found: $PROJECT_MANIFEST" >&2; exit 2; }
-  _bad=""
-  _nlv="$(printf '%s' "$PROJECT_ITEMS" | tr ',' '\n')"
-  while IFS= read -r _nm; do
-    _nm="$(printf '%s' "$_nm" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-    [ -z "$_nm" ] && continue
-    _k="$(project_manifest_kind "$_nm")"
-    if [ -z "$_k" ]; then _bad="$_bad $_nm"; continue; fi
-    if [ "$_k" = agent ] && [ ! -f "$PAYLOAD_PROJECT/agents/$_nm.md" ]; then _bad="$_bad $_nm(missing-src)"; fi
-    if [ "$_k" = skill ] && [ ! -d "$PAYLOAD_PROJECT/skills/$_nm" ];   then _bad="$_bad $_nm(missing-src)"; fi
-  done <<EOF
-$_nlv
-EOF
-  if [ -n "$_bad" ]; then
-    echo "error: unknown or unavailable --project-items name(s):$_bad" >&2
-    echo "       valid names (from $PROJECT_MANIFEST):" >&2
-    project_manifest_names | sed 's/^/         /' >&2
-    exit 2
-  fi
-fi
-
-# ---- project-routes MASTER validation (fail-closed, read-only) — run in PREFLIGHT, BEFORE any tier write,
-#      so an invalid master row makes the WHOLE command fail fast + ATOMIC (exit 2, nothing written anywhere:
-#      no ~/.claude backup/settings/copy, no routing, no record). Runs EVEN under --no-verify (a safety gate,
-#      not a verify gate). Gated to the runs that will apply the master: an explicit --apply-project-routes,
-#      or ANY tier install (a tier auto-applies an active master). A blank master no-ops; a pure
-#      --project-items CLI call never applies the master, so it is not validated here (keeps ~/.claude isolation).
-if [ "$APPLY_ROUTES" = 1 ] || [ "$ANY_TIER" = 1 ]; then
-  validate_routes_master
-fi
-
-# ~/.claude setup + managed-set backup — ONLY when a tier install is happening. A pure project-routing
-# call (--project-items with no tier) does not touch $CLAUDE_DIR, so it makes no backup snapshot here.
-if [ "$ANY_TIER" = 1 ]; then
-  run mkdir -p "$CLAUDE_DIR" "$BACKUP"
-  # ---- back up the managed set ONCE, before any write ----
-  for t in CLAUDE.md settings.json rules skills agents commands hooks methodology docs; do
-    [ -e "$CLAUDE_DIR/$t" ] && { run cp -R "$CLAUDE_DIR/$t" "$BACKUP/"; log "backed up $t"; }
-  done
-  log "backup -> $BACKUP"
-fi
+# ~/.claude setup + managed-set backup, taken ONCE before any write.
+# [RETIRED 2026-08-09, PC3] this was guarded by ANY_TIER, because a pure project-routing call
+# touched no $CLAUDE_DIR and had to skip the snapshot. Every invocation is a tier install now,
+# so the snapshot is unconditional.
+run mkdir -p "$CLAUDE_DIR" "$BACKUP"
+# ---- back up the managed set ONCE, before any write ----
+for t in CLAUDE.md settings.json rules skills agents commands hooks methodology docs; do
+  [ -e "$CLAUDE_DIR/$t" ] && { run cp -R "$CLAUDE_DIR/$t" "$BACKUP/"; log "backed up $t"; }
+done
+log "backup -> $BACKUP"
 
 copy_tree(){ # $1 payload subdir, $2 target subdir  (additive; never --delete)
   run mkdir -p "$CLAUDE_DIR/$2"
@@ -722,46 +508,20 @@ if [ "${#FRAGS[@]}" -gt 0 ]; then
   log "settings merged"
 fi
 
-# ---- route project-specialty items into a project's OWN .claude/ (independent of the ~/.claude install) ----
-# The one-shot CLI path (--project-items/--project-bundle). Runs AFTER any tier install so a combined call
-# does BOTH; runs alone for a pure project-routing call. Stays isolated from ~/.claude (routes no master).
-if [ -n "$PROJECT_ITEMS" ]; then
-  route_project_items "$PROJECT_ITEMS" "$PROJECT_DEST"
-fi
-
-# ---- apply the project-routes MASTER: route every declared bundle to its dest(s) (validated fail-closed) --
-# Triggered EXPLICITLY by --apply-project-routes, OR AUTOMATICALLY on a tier install when the master has
-# active rows (a blank master is a no-op; a pure CLI --project-items call never auto-applies the master).
-APPLIED_MASTER=0
-if [ "$APPLY_ROUTES" = 1 ]; then
-  apply_project_routes; APPLIED_MASTER=1
-elif [ "$ANY_TIER" = 1 ] && [ -n "$(read_routes_active "$ROUTES_MASTER")" ]; then
-  log "[routes] tier install + active master rows => auto-applying project routes"
-  apply_project_routes; APPLIED_MASTER=1
-fi
+# ── [RETIRED 2026-08-09, PC3] project-specialty routing execution ────────────────────────────
+# Two execution blocks lived here: the one-shot CLI copy (--project-items/--project-bundle) and the
+# auto/explicit apply of the project-routes MASTER, plus the DONE lines that reported them. Specialists
+# now install BY HAND from CCRT_specialists/ into a project's own .claude/, so this installer's only
+# destination is $CLAUDE_DIR and the DONE line no longer has a routing-only variant to distinguish.
 
 echo
-if [ "$ANY_TIER" = 1 ]; then
-  echo "DONE. Backup: $BACKUP"
-elif [ "$APPLY_ROUTES" = 1 ]; then
-  echo "DONE (project routes applied — ~/.claude untouched except the derived applied-record)."
-else
-  echo "DONE (project-routing only — ~/.claude was not touched)."
-fi
-[ -n "$PROJECT_ITEMS" ] && echo "Project items routed to: $PROJECT_DEST/.claude/{agents,skills}/ (any overwritten target backed up under $PROJECT_DEST/.claude/backups/pre-project-$TS)"
-if [ "$APPLIED_MASTER" = 1 ]; then
-  echo "Applied project routes from master: $ROUTES_MASTER"
-  echo "  (derived applied-record: $ROUTES_RECORD — a receipt; edit the master, not this copy)"
-fi
+echo "DONE. Backup: $BACKUP"
 [ "$DRY" = 1 ] && echo "(dry run — nothing was written)"
 echo "RESTART Claude Code (start a NEW session) — rules/skills/agents/hooks load at startup."
-# scope-aware verify hint (tier installs only; a pure project-routing call did not touch ~/.claude).
-# A stacked --root install with skipped discipline trees has NO local rules/ (by design — it inherits
-# global), so don't tell the user to ls a path that correctly doesn't exist.
-if [ "$ANY_TIER" = 1 ]; then
-  if [ "${_disc_eff:-copy}" = skip ]; then
-    echo "Verify: see INSTALL.md; quick check -> ls \"$CLAUDE_DIR\"/{CLAUDE.md,skills,agents}  (rules/methodology/docs inherit from global $GLOBAL_DIR)"
-  else
-    echo "Verify: see INSTALL.md for the post-install checklist; quick check -> ls \"$CLAUDE_DIR\"/{CLAUDE.md,rules,skills,agents}"
-  fi
+# scope-aware verify hint. A stacked --root install with skipped discipline trees has NO local rules/
+# (by design — it inherits global), so don't tell the user to ls a path that correctly doesn't exist.
+if [ "${_disc_eff:-copy}" = skip ]; then
+  echo "Verify: see INSTALL.md; quick check -> ls \"$CLAUDE_DIR\"/{CLAUDE.md,skills,agents}  (rules/methodology/docs inherit from global $GLOBAL_DIR)"
+else
+  echo "Verify: see INSTALL.md for the post-install checklist; quick check -> ls \"$CLAUDE_DIR\"/{CLAUDE.md,rules,skills,agents}"
 fi

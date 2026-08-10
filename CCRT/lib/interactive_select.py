@@ -43,14 +43,11 @@ DEFAULT_RESOLVER = os.path.join(HERE, "select_resolve.py")
 DEFAULT_MANIFEST = os.path.join(
     os.path.dirname(HERE), "payload", "coupling_manifest_v1.tsv"
 )
-# Project-specialty bundle routing (PASS 3). The project manifest + the fillable routes MASTER both ship
-# under payload-project/; the master is authoritative (CRT_ROUTES_MASTER overrides its path, for testing).
-DEFAULT_PROJECT_MANIFEST = os.path.join(
-    os.path.dirname(HERE), "payload-project", "project_manifest.tsv"
-)
-DEFAULT_ROUTES_MASTER = os.environ.get("CRT_ROUTES_MASTER") or os.path.join(
-    os.path.dirname(HERE), "payload-project", "project_routes.tsv"
-)
+# [RETIRED 2026-08-09, PC3] PASS 3 (project-specialty bundle routing) lived here: DEFAULT_PROJECT_MANIFEST
+# and DEFAULT_ROUTES_MASTER pointed at ../payload-project/{project_manifest,project_routes}.tsv — a
+# directory that has been DELETED, so both reads dangled. The flags they composed (--apply-project-routes)
+# are retired from install.sh too. REPLACEMENT: specialists install MANUALLY from CCRT_specialists/ into a
+# project's own .claude/, so there is nothing for a picker to compose and the flow is two passes, not three.
 
 
 # ── stderr I/O helpers (menus/prompts NEVER touch stdout) ────────────────────
@@ -269,122 +266,12 @@ def compose_root(root, names, is_all, allow_deferred, discipline):
     return args
 
 
-# ── Phase B3: project-specialty bundle routes (PASS 3) ───────────────────────
-# The picker composes `--apply-project-routes` and may APPEND a route row to the routes MASTER (the file
-# install reads). Appending a route is user-config editing (the ONE write the picker makes) — it is NOT
-# payload copy/coupling/discipline logic, which stays in the engine. Menus -> stderr; input -> stdin; EOF = skip.
-def load_bundles(project_manifest):
-    """Parse project_manifest.tsv -> ordered [{name, members:[...], dest_hint, note}]. Skips `#` + the
-    header (col1=='name'); bundle = col 6 (index 5). [] if the file is absent/has no bundles."""
-    bundles, order = {}, []
-    try:
-        with open(project_manifest, encoding="utf-8") as fh:
-            for raw in fh:
-                if raw.lstrip().startswith("#"):
-                    continue
-                parts = raw.rstrip("\n").split("\t")
-                if len(parts) < 6:
-                    continue
-                name, dest_hint, note, bundle = parts[0], parts[3], parts[4], parts[5]
-                if name == "name" or not bundle.strip():
-                    continue
-                b = bundle.strip()
-                if b not in bundles:
-                    bundles[b] = {"name": b, "members": [], "dest_hint": dest_hint.strip(), "note": note.strip()}
-                    order.append(b)
-                bundles[b]["members"].append(name.strip())
-    except OSError:
-        return []
-    return [bundles[b] for b in order]
-
-
-def load_routes(routes_file):
-    """Return active (bundle, dest) rows from the live routes file (skip `#` + blank); [] if absent."""
-    rows = []
-    try:
-        with open(routes_file, encoding="utf-8") as fh:
-            for raw in fh:
-                if raw.lstrip().startswith("#") or not raw.strip():
-                    continue
-                parts = raw.rstrip("\n").split("\t")
-                if len(parts) >= 2 and parts[0].strip():
-                    rows.append((parts[0].strip(), parts[1].strip()))
-    except OSError:
-        pass
-    return rows
-
-
-def append_route(routes_file, bundle, dest):
-    """Append one `bundle<TAB>dest` row to the routes MASTER (the file install reads). In real use the
-    master already exists in the repo; if it is somehow absent (e.g. a temp path under test), write a
-    minimal documented header first. Stores the dest verbatim (a leading `~` is expanded later, at apply)."""
-    d = os.path.dirname(os.path.abspath(routes_file))
-    if d and not os.path.isdir(d):
-        os.makedirs(d, exist_ok=True)
-    if not os.path.exists(routes_file):
-        with open(routes_file, "w", encoding="utf-8") as o:
-            o.write("# project_routes.tsv — the fillable MASTER: bundle<TAB>dest routes (edit in the repo).\n")
-    with open(routes_file, "a", encoding="utf-8") as o:
-        o.write("%s\t%s\n" % (bundle, dest))
-
-
-def bundles_pass(project_manifest, routes_file):
-    """PASS 3 — offer to apply/add project-specialty bundle routes (routes_file = the MASTER install reads).
-    Returns ['--apply-project-routes'] (chose apply, or added >=1 route) or None (skip). No bundles known
-    => None WITHOUT prompting."""
-    bundles = load_bundles(project_manifest)
-    if not bundles:
-        return None  # nothing to offer -> do not prompt / consume input
-    err("\n########## PASS 3 of 3 — PROJECT-SPECIALTY BUNDLES ##########")
-    err("Route project-specialty bundles to a project's OWN .claude/ (never into ~/.claude).")
-    err("Available bundles (from project_manifest.tsv):")
-    for i, b in enumerate(bundles, 1):
-        err(f"  {i}) {b['name']}  — members: {', '.join(b['members'])}")
-        if b["dest_hint"]:
-            err(f"       dest hint: {b['dest_hint']}")
-        if b["note"]:
-            err(f"       note: {b['note'][:100]}")
-    rows = load_routes(routes_file)
-    err(f"Current routes (from {routes_file}):")
-    if rows:
-        for rb, rd in rows:
-            err(f"  - {rb} -> {rd}")
-    else:
-        err("  (none yet)")
-    has_rows = len(rows) > 0
-    err("Options:  a) apply all routes%s   b) add a route   c) skip%s"
-        % ("  [default]" if has_rows else "", "  [default]" if not has_rows else ""))
-    choice = ask_default("Choice [a/b/c]> ", "c").strip().lower()  # EOF -> 'c' (skip cleanly)
-    if choice == "":                                               # bare Enter -> the shown default
-        choice = "a" if has_rows else "c"
-    if choice in ("a", "apply"):
-        return ["--apply-project-routes"]
-    if choice in ("b", "add"):
-        pick = ask_default(f"  Pick a bundle by number [1-{len(bundles)}] (blank to cancel)> ", "").strip()
-        if not pick.isdigit() or not (1 <= int(pick) <= len(bundles)):
-            err("  (no valid bundle chosen — skipping route add.)")
-            return None
-        b = bundles[int(pick) - 1]
-        err(f"  adding routes for '{b['name']}'. Enter dest project root(s); blank/done to finish.")
-        added = 0
-        while True:
-            dest = ask_default("  Destination project root> ", "").strip()
-            if dest == "" or dest.lower() == "done":
-                break
-            append_route(routes_file, b["name"], dest)
-            err(f"  + route: {b['name']} -> {dest}")
-            added += 1
-        return ["--apply-project-routes"] if added > 0 else None
-    err("  (skipped project bundles.)")
-    return None
-
-
 # ── Phase B: the two-pass driver ─────────────────────────────────────────────
-def run(menu, project_manifest, routes_file):
+def run(menu):
     invocations = []  # list of argv-token lists; one install.sh call each
 
     # PASS 1 — global set
-    err("\n########## PASS 1 of 3 — GLOBAL install (~/.claude) ##########")
+    err("\n########## PASS 1 of 2 — GLOBAL install (~/.claude) ##########")
     g_names, g_all, g_deferred = select_pass(menu, "GLOBAL components")
     g_args = compose_global(g_names, g_all, g_deferred)
     if g_args is not None:
@@ -393,7 +280,7 @@ def run(menu, project_manifest, routes_file):
         err("(no global components chosen — you must add at least one project root.)")
 
     # PASS 2 — optional per-root specialist sets
-    err("\n########## PASS 2 of 3 — optional PROJECT ROOTS ##########")
+    err("\n########## PASS 2 of 2 — optional PROJECT ROOTS ##########")
     err("Add project-local (--root DIR) installs that STACK on the global set. Blank/done = skip.")
     while True:
         try:
@@ -414,11 +301,6 @@ def run(menu, project_manifest, routes_file):
         r_args = compose_root(root, r_names, r_all, r_deferred, discipline)
         if r_args is not None:
             invocations.append(r_args)
-
-    # PASS 3 — optional project-specialty bundle routes (composes --apply-project-routes)
-    b_args = bundles_pass(project_manifest, routes_file)
-    if b_args is not None:
-        invocations.append(b_args)
 
     # nothing at all selected -> abort (never emit an empty plan)
     if not invocations:
@@ -455,13 +337,9 @@ def main(argv=None):
                     help="path to select_resolve.py (default: alongside this script)")
     ap.add_argument("--manifest", default=DEFAULT_MANIFEST,
                     help="path to coupling_manifest_v1.tsv (default: ../payload/)")
-    ap.add_argument("--project-manifest", default=DEFAULT_PROJECT_MANIFEST,
-                    help="path to payload-project/project_manifest.tsv (PASS 3 bundles; default: ../payload-project/)")
-    ap.add_argument("--routes-file", default=DEFAULT_ROUTES_MASTER,
-                    help="path to the project-routes MASTER install reads/appends (default: payload-project/project_routes.tsv; CRT_ROUTES_MASTER overrides)")
     a = ap.parse_args(argv)
     menu = load_menu(a.resolver, a.manifest)
-    return run(menu, a.project_manifest, a.routes_file)
+    return run(menu)
 
 
 if __name__ == "__main__":

@@ -215,19 +215,25 @@ if not scope_ok:
 # ---------- 3b. ROLE — the seventh slot (Z7, 2026-08-06): the routing decision ----
 # A brief with no ROLE assignment has silently skipped the persona/tier routing
 # decision (the recorded other-session failure). Two flags, advisory like the six:
-# no `ROLE:` line at all; or a ROLE'd brief that names neither a persona pointer
-# (an agents/<name>.md path the child reads itself) nor the explicit "no specialist
-# fits" fallback anywhere in the file.
+# no `ROLE:` line at all; or a ROLE'd brief naming NONE of the THREE legal forms
+# (HDG1, 2026-08-07) — a persona pointer `agents/<name>.md`, a skill pointer
+# `skills/<name>/SKILL.md`, or the literal `no specialist fits` — anywhere in the
+# file. The three forms and their wording match fable-dispatch-gate.sh CHECK 2
+# exactly: the deny-capable gate and this advisory must never disagree about what
+# is legal, or a brief this one calls complete is one that gate refuses.
 ROLE_LINE = re.compile(r"^\s*ROLE\s*:", re.I)
 ROLE_PTR = re.compile(r"agents/[A-Za-z0-9_-]+\.md")
+SKILL_PTR = re.compile(r"skills/[A-Za-z0-9_-]+/SKILL\.md")
 NO_FIT = re.compile(r"no\s+specialist\s+fits", re.I)
 _whole = "\n".join(lines)
 if not any(ROLE_LINE.match(ln) for ln in lines):
-    missing.append("7. ROLE (no line — name the specialist persona by its agents/<name>.md "
-                   "Read-pointer path + tier/effort, or say 'no specialist fits')")
-elif not (ROLE_PTR.search(_whole) or NO_FIT.search(_whole)):
-    missing.append("7. ROLE (present, but the brief names neither a persona pointer "
-                   "agents/<name>.md nor 'no specialist fits')")
+    missing.append("7. ROLE (no line — name ONE of the three forms by Read-pointer path: a "
+                   "persona pointer agents/<name>.md, a skill pointer skills/<name>/SKILL.md, "
+                   "or the literal 'no specialist fits' — plus tier/effort)")
+elif not (ROLE_PTR.search(_whole) or SKILL_PTR.search(_whole) or NO_FIT.search(_whole)):
+    missing.append("7. ROLE (present, but the brief names none of the three forms: a persona "
+                   "pointer agents/<name>.md, a skill pointer skills/<name>/SKILL.md, or "
+                   "'no specialist fits')")
 
 if not missing:
     sys.exit(0)   # complete brief => silent

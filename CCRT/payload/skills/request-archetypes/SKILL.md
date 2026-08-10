@@ -69,7 +69,7 @@ WHEN about to plan or fulfil a request => FIRST name its archetype from the tell
 
 ### analysis pipeline  (empirical n=58)
 - TRIGGER TELLS: "I want the chunk fitting to be Bayesian. That is a hard requ..." · "within-variable, multi-sensor drift detection"
-- => SPECIALISTS (consider first): **micromet-reconstructor, machine-learning-scientist, ml-hybrid-process-modeler, ecophysiology-modeler**
+- => SPECIALISTS (consider first): **micromet-reconstructor, machine-learning-scientist, ml-hybrid-process-modeler, ecophysiology-modeler** — [RE-POINTED 2026-08-09] all four LEFT the general payload for the `CCRT_specialists/` tree, a MANUAL-INSTALL set copied in by hand (no installer flag; browse the tree for the bucket), so they are available only where someone installed that bucket. WHEN none is installed ⇒ say so and route the work to `software-developer` under `research-stats-advisor`, rather than naming a specialist the session cannot launch.
 - => SKILLS (load): —
 - => OUTPUT FORM: runnable R/Stan/Python implementing the actual gap-fill / interpolation / model-fit, with QC
 - NOTE: Pick the domain specialist by data type; load `research-stats-advisor` first if the METHOD is unsettled.

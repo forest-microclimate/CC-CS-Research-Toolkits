@@ -1,6 +1,186 @@
 {
  "actions": [
   [
+   "SYNC",
+   "CCRT/CCRT_specialists/AI_philosophy/agents/ai-safety-scholar.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/AI_philosophy/agents/philosophy-of-tech.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/CCRT_QA_QC_debugging/agents/probe-base.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/CCRT_QA_QC_debugging/agents/probe-bash.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/CCRT_QA_QC_debugging/agents/probe-pad06.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/CCRT_QA_QC_debugging/agents/probe-pad12.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/CCRT_QA_QC_debugging/agents/probe-pad18.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/CCRT_QA_QC_debugging/agents/probe-pad24.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/CCRT_QA_QC_debugging/agents/probe-skill.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/CCRT_QA_QC_debugging/agents/probe-task.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/CCRT_QA_QC_debugging/agents/probe-web.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/README.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/CliMA_km67_specific/agents/ecosystem-model-tracer.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/CliMA_km67_specific/skills/julia-performance-correctness/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/CliMA_km67_specific/skills/km67-canonical-methods/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/CliMA_km67_specific/skills/km67-canonical-methods/km67_registry.py"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/agents/dynamical-systems-modeler.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/agents/ecophysiology-modeler.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/agents/machine-learning-scientist.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/agents/micromet-reconstructor.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/agents/ml-hybrid-process-modeler.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/aggregation-jensen-bias/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/biosphere-atmosphere-flux-exchange/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/biosphere-atmosphere-flux-exchange/flux_physics.py"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/calibrated-uq-for-ml/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/calibrated-uq-for-ml/uq_calibration.py"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/gap-fill-imputation/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/mgcv-temporal-gam/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/micromet-height-interpolation/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/ml-emulator-surrogate/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/multi-source-fusion-bias-correction/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/multi-source-fusion-bias-correction/fusion_bias_correct.py"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/physics-informed-ml/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/reproduce-model-from-literature/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/scientific-ml-fundamentals/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/scientific-ml-fundamentals/quality_metrics.py"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/temporal-block-cv/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/temporal-qc-outlier-detection/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/ecosystem_and_ecophys_modeling/general_modeling/skills/tree-ensembles/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/phyllosphere/agents/phyllosphere-ecologist.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/phyllosphere/skills/amplicon-community-diversity/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/phyllosphere/skills/community-assembly-null-models/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/phyllosphere/skills/fungal-guild-assignment/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/phyllosphere/skills/generalized-dissimilarity-modeling/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/CCRT_specialists/phyllosphere/skills/microbial-cooccurrence-network/SKILL.md"
+  ],
+  [
    "REFERENCE",
    "CCRT/DOCS_POINTER.md"
   ],
@@ -122,11 +302,11 @@
   ],
   [
    "SYNC",
-   "CCRT/payload/agents/dynamical-systems-modeler.md"
+   "CCRT/payload/agents/fable-executor.md"
   ],
   [
    "SYNC",
-   "CCRT/payload/agents/ecophysiology-modeler.md"
+   "CCRT/payload/agents/fable-subplanner.md"
   ],
   [
    "SYNC",
@@ -142,15 +322,7 @@
   ],
   [
    "SYNC",
-   "CCRT/payload/agents/machine-learning-scientist.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/agents/micromet-reconstructor.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/agents/ml-hybrid-process-modeler.md"
+   "CCRT/payload/agents/opus5-executor.md"
   ],
   [
    "SYNC",
@@ -662,10 +834,6 @@
   ],
   [
    "SYNC",
-   "CCRT/payload/skills/aggregation-jensen-bias/SKILL.md"
-  ],
-  [
-   "SYNC",
    "CCRT/payload/skills/bash-hook-contract/SKILL.md"
   ],
   [
@@ -674,23 +842,7 @@
   ],
   [
    "SYNC",
-   "CCRT/payload/skills/biosphere-atmosphere-flux-exchange/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/biosphere-atmosphere-flux-exchange/flux_physics.py"
-  ],
-  [
-   "SYNC",
    "CCRT/payload/skills/brms-hierarchical-fitting/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/calibrated-uq-for-ml/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/calibrated-uq-for-ml/uq_calibration.py"
   ],
   [
    "SYNC",
@@ -738,27 +890,7 @@
   ],
   [
    "SYNC",
-   "CCRT/payload/skills/gap-fill-imputation/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/julia-performance-correctness/SKILL.md"
-  ],
-  [
-   "SYNC",
    "CCRT/payload/skills/machine-md/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/mgcv-temporal-gam/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/micromet-height-interpolation/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/ml-emulator-surrogate/SKILL.md"
   ],
   [
    "SYNC",
@@ -771,18 +903,6 @@
   [
    "SYNC",
    "CCRT/payload/skills/model-verification/model_run_audit.py"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/multi-source-fusion-bias-correction/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/multi-source-fusion-bias-correction/fusion_bias_correct.py"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/physics-informed-ml/SKILL.md"
   ],
   [
    "SYNC",
@@ -799,10 +919,6 @@
   [
    "SYNC",
    "CCRT/payload/skills/refusal-recovery/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/reproduce-model-from-literature/SKILL.md"
   ],
   [
    "SYNC",
@@ -902,19 +1018,31 @@
   ],
   [
    "SYNC",
-   "CCRT/payload/skills/scientific-ml-fundamentals/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/scientific-ml-fundamentals/quality_metrics.py"
-  ],
-  [
-   "SYNC",
    "CCRT/payload/skills/software-craft/SKILL.md"
   ],
   [
    "SYNC",
    "CCRT/payload/skills/solo/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/payload/skills/ssh-compute-provision/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/payload/skills/ssh-compute-provision/compute_details.template.md"
+  ],
+  [
+   "SYNC",
+   "CCRT/payload/skills/ssh-compute-provision/probe.sh"
+  ],
+  [
+   "SYNC",
+   "CCRT/payload/skills/ssh-compute-provision/provision_host.sh"
+  ],
+  [
+   "SYNC",
+   "CCRT/payload/skills/ssh-compute-provision/remote_provision.sh"
   ],
   [
    "TRANSFORM",
@@ -930,23 +1058,11 @@
   ],
   [
    "SYNC",
-   "CCRT/payload/skills/temporal-block-cv/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/temporal-qc-outlier-detection/SKILL.md"
-  ],
-  [
-   "SYNC",
    "CCRT/payload/skills/testing-discipline/SKILL.md"
   ],
   [
    "SYNC",
    "CCRT/payload/skills/toolkit-extension-authoring/SKILL.md"
-  ],
-  [
-   "SYNC",
-   "CCRT/payload/skills/tree-ensembles/SKILL.md"
   ],
   [
    "SYNC",
@@ -1162,6 +1278,10 @@
   ],
   [
    "SYNC",
+   "CSRTB/bundle_src/profiles/AI_SAFETY_SCHOLAR.json"
+  ],
+  [
+   "SYNC",
    "CSRTB/bundle_src/profiles/CODE_REVIEW_DEBUGGER.json"
   ],
   [
@@ -1206,6 +1326,14 @@
   ],
   [
    "SYNC",
+   "CSRTB/bundle_src/profiles/PHILOSOPHY_OF_TECH.json"
+  ],
+  [
+   "SYNC",
+   "CSRTB/bundle_src/profiles/PHYLLOSPHERE_ECOLOGIST.json"
+  ],
+  [
+   "SYNC",
    "CSRTB/bundle_src/profiles/PLANNER.json"
   ],
   [
@@ -1231,6 +1359,10 @@
   [
    "SYNC",
    "CSRTB/bundle_src/skills/aggregation-jensen-bias/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CSRTB/bundle_src/skills/amplicon-community-diversity/SKILL.md"
   ],
   [
    "SYNC",
@@ -1267,6 +1399,10 @@
   [
    "SYNC",
    "CSRTB/bundle_src/skills/collab/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CSRTB/bundle_src/skills/community-assembly-null-models/SKILL.md"
   ],
   [
    "SYNC",
@@ -1342,7 +1478,15 @@
   ],
   [
    "SYNC",
+   "CSRTB/bundle_src/skills/fungal-guild-assignment/SKILL.md"
+  ],
+  [
+   "SYNC",
    "CSRTB/bundle_src/skills/gap-fill-imputation/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CSRTB/bundle_src/skills/generalized-dissimilarity-modeling/SKILL.md"
   ],
   [
    "SYNC",
@@ -1371,6 +1515,10 @@
   [
    "SYNC",
    "CSRTB/bundle_src/skills/mgcv-temporal-gam/SKILL.md"
+  ],
+  [
+   "SYNC",
+   "CSRTB/bundle_src/skills/microbial-cooccurrence-network/SKILL.md"
   ],
   [
    "SYNC",
@@ -1642,23 +1790,23 @@
   ],
   [
    "SYNC",
-   "Documentation/PDF/ASSURANCE_ARCHITECTURE.pdf"
+   "Documentation/PDF/00_TWIN_ARCHITECTURE.pdf"
   ],
   [
    "SYNC",
-   "Documentation/PDF/CROSS_PORTING_GUIDE.pdf"
-  ],
-  [
-   "SYNC",
-   "Documentation/PDF/MODEL_SUBSTITUTION_AND_VERIFIED_LAUNCH.pdf"
+   "Documentation/PDF/01_CROSS_PORTING_GUIDE.pdf"
   ],
   [
    "REFERENCE",
-   "Documentation/PDF/TOOLKIT_ROSTER_CCRT_vs_CSRTB.pdf"
+   "Documentation/PDF/02_TOOLKIT_ROSTER_CCRT_vs_CSRTB.pdf"
   ],
   [
    "SYNC",
-   "Documentation/PDF/TWIN_ARCHITECTURE.pdf"
+   "Documentation/PDF/03_MODEL_SUBSTITUTION_AND_VERIFIED_LAUNCH.pdf"
+  ],
+  [
+   "SYNC",
+   "Documentation/PDF/04_ASSURANCE_ARCHITECTURE.pdf"
   ],
   [
    "REFERENCE",
@@ -1723,5 +1871,5 @@
  ],
  "gates_failed": 0,
  "profile": "public",
- "written": 429
+ "written": 466
 }

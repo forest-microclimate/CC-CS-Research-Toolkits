@@ -71,6 +71,41 @@ item in either toolkit classifies into exactly one of three tiers. Call them the
 tier**, the **split-mechanism tier**, and the **platform-only tier** (TIER-S, TIER-C, and
 TIER-P in the map that owns the full definitions).
 
+The picture below carries the whole model in one look: the single methodology at the top, the
+two platforms it lands on, and the three relationships any one item can stand in — each with
+a different duty attached.
+
+<!--FIG: One methodology, two carriers, three duties: every load-bearing item stands in exactly one of three relationships, and each relationship carries its own obligation when the item changes. | 76% -->
+
+```mermaid
+flowchart TD
+    M["<b>One methodology</b><br/>authored once, so it cannot fork"]
+    CCRT["<b>On Claude Code</b><br/>a program on your own machine:<br/>files, a shell, and checks that can<br/>stop an action before it happens"]
+    CSRTB["<b>On Claude Science</b><br/>a sandbox reached through a browser:<br/>no such checks, a software interface,<br/>and a reviewer that reads afterwards"]
+    ITEM{"any single item<br/>you are looking at"}
+    S["<b>shared</b><br/>same content, same kind of carrier<br/>DUTY: mirror the change across"]
+    C["<b>split-mechanism</b><br/>same discipline, different carrier<br/>DUTY: re-express it, never copy it across"]
+    P["<b>platform-only</b><br/>meaningful on one side alone<br/>DUTY: none. It never crosses."]
+    M --> CCRT
+    M --> CSRTB
+    CCRT --> ITEM
+    CSRTB --> ITEM
+    ITEM --> S
+    ITEM --> C
+    ITEM --> P
+    classDef top fill:#E8763A,stroke:#B4551F,color:#ffffff
+    classDef plat fill:#2E9BD6,stroke:#1C6FA0,color:#ffffff
+    classDef duty fill:#2E7D32,stroke:#1B5E20,color:#ffffff
+    classDef pick fill:#6B7280,stroke:#374151,color:#ffffff
+    class M top
+    class CCRT,CSRTB plat
+    class S,C,P duty
+    class ITEM pick
+```
+
+The takeaway is the third row: the tier an item sits in is not a label, it is an instruction
+about what you owe the other side when that item changes.
+
 An item in the **shared tier** has the same content and the same kind of carrier on both
 sides. A change to one should be mirrored to the other, allowing for local vocabulary. The
 platform-neutral methodology skills live here, the disciplines that carry the same meaning on
@@ -200,9 +235,9 @@ because two current copies of a fact drift apart and the divergence is undetecta
 the worst kind of poison a shared record can carry. And you route every question about what a
 thing is, where it lives, and why it sits there to the owner-document rather than to your own
 recollection, with the owner-document winning any disagreement. One of the port-direction
-authorities, the record of Science skills deliberately not ported back, lives in a historical
-tree outside this mirror and is not readable from here; where it comes up, that is exactly
-what to say about it.
+authorities, the record of Science skills deliberately not ported back, lives in an older
+working copy of the project that is not shipped here and cannot be read from this repository;
+where it comes up, that is exactly what to say about it.
 
 ## What generalizes
 

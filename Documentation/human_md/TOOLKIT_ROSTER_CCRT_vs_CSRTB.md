@@ -39,11 +39,11 @@ The single idea that prevents all three mistakes is this: **these are not two co
 
 Both toolkits equip a research assistant with the same underlying craft — planning and delegation, scientific modeling, statistics, code review, document authoring, literature management. They differ in which Anthropic product they customize.
 
-**CCRT — the Claude Research Toolkit — customizes Claude Code.** Claude Code runs as a local process on the user's own machine. Its customizations install into the global `~/.claude/` directory through an `install.sh` script, and they come in three forms: **agents** (specialist personas, each a Markdown file with a system-prompt body), **skills** (reusable methodology and technique docs an agent can load), and **hooks** (small bash or Python programs that fire automatically on real events — when a turn stops, when a notification arrives, before a tool call runs — and that can *block* an action by exiting with code 2). At v2.7 CCRT carries **17 agents and 39 skills**.
+**CCRT — the Claude Research Toolkit — customizes Claude Code.** Claude Code runs as a local process on the user's own machine. Its customizations install into the global `~/.claude/` directory through an `install.sh` script, and they come in three forms: **agents** (specialist personas, each a Markdown file with a system-prompt body), **skills** (reusable methodology and technique docs an agent can load), and **hooks** (small bash or Python programs that fire automatically on real events — when a turn stops, when a notification arrives, before a tool call runs — and that can *block* an action by exiting with code 2). Counted from the trees on 7 August 2026, CCRT carries **18 agents and 47 skills**.
 
-**CSRTB — the Claude Science customization bundle — customizes Claude Science** (the platform this document was authored on). Claude Science runs in a remote sandbox. It has no local shell for the user, no local audio device, and — the fact that matters most — **no hook surface**: nothing fires automatically on a turn boundary. What it has instead is the **`host.*` SDK**: `host.delegate` for launching sub-agents, `host.query` and `host.artifacts` and `host.lineage` for reading a metadata database of everything the project has produced, `host.mcp` for calling connected tools. It also has a **background reviewer** that reads each turn *after* it happens and scores it. Its customizations are **profiles** (the Science analog of an agent) and skills, distributed as a self-installing JSON bundle. At v2.7 CSRTB carries **17 profiles and 44 skills**.
+**CSRTB — the Claude Science customization bundle — customizes Claude Science** (the platform this document was authored on). Claude Science runs in a remote sandbox. It has no local shell for the user, no local audio device, and — the fact that matters most — **no hook surface**: nothing fires automatically on a turn boundary. What it has instead is the **`host.*` SDK**: `host.delegate` for launching sub-agents, `host.query` and `host.artifacts` and `host.lineage` for reading a metadata database of everything the project has produced, `host.mcp` for calling connected tools. It also has a **background reviewer** that reads each turn *after* it happens and scores it. Its customizations are **profiles** (the Science analog of an agent) and skills, distributed as a self-installing JSON bundle. Counted the same day, CSRTB carries **18 profiles and 52 skills**.
 
-That is the whole cast. The counts differ — 17/39 versus 17/44 — and Section 4 explains why that difference is expected rather than a sign that something is missing.
+That is the whole cast. The two sides now match in size on the specialist side and differ on the skills side — 18 agents and 47 skills against 18 profiles and 52 skills — and Section 4 explains why that difference is expected rather than a sign that something is missing. Counts drift as the toolkits grow, and a distributed copy may carry fewer items than the tree they were counted from, so recount from the tree in front of you before citing a number.
 
 ---
 
@@ -53,7 +53,7 @@ Here is the mechanism that generates almost every difference you will see betwee
 
 **Claude Code has deterministic hooks that fire on real events and can block. Claude Science has none of that — only a soft reviewer that reads after the fact.** Consider what each platform must do to enforce the same discipline: *verify a claim against the record before a write lands.* On Claude Code, a hook (`claim-verify-guard.sh`) fires *before* the write, checks the claim, and if it does not match, exits with code 2 and the write never happens. That is a hard gate. On Claude Science there is no "before the write" event to hook into, so the same discipline can only be *approximated*: the profile runs a prose self-check, emits a marker into its output, and the background reviewer scores that marker afterward. That is a soft gate. Same intent; a hard mechanism on one side, the strongest available soft mechanism on the other.
 
-Now watch the same logic produce a completely different-looking divergence. **The completion beep.** When a long task finishes, both toolkits want to alert the user. Claude Code fires a beep from a Stop-event hook (`xbeep`) using the local machine's audio device — wired once, no per-agent code. Claude Science has neither a turn-end event nor an audio device, so it produces the sound *in the browser* through Web Audio, and — because there is no hook to fire it automatically — **every profile that wants the beep must declare it as a standing behavior.** The result is visible in the data: the `audible-alert` skill is referenced by all 17 of the 17 CSRTB profiles. That 17-out-of-17 fan-in is not redundancy or sloppiness; it is the exact mechanical cost of a missing hook surface. The same absence also reshapes sub-agent orchestration (Claude Code's synchronous, shared-workspace Task tool versus Science's asynchronous `host.delegate` with its collect-and-steer SDK) and provenance-tracking (a rule-plus-hook on Code, a metadata-database-reading skill on Science).
+Now watch the same logic produce a completely different-looking divergence. **The completion beep.** When a long task finishes, both toolkits want to alert the user. Claude Code fires a beep from a Stop-event hook (`xbeep`) using the local machine's audio device — wired once, no per-agent code. Claude Science has neither a turn-end event nor an audio device, so it produces the sound *in the browser* through Web Audio, and — because there is no hook to fire it automatically — **every profile that wants the beep must declare it as a standing behavior.** The result is visible in the data: the `audible-alert` skill is referenced by 17 of the 18 CSRTB profiles (counted 7 August 2026; the exception is `SOFTWARE_DEVELOPER`, the newest profile). That near-total fan-in is not redundancy or sloppiness; it is the exact mechanical cost of a missing hook surface — and the single profile that does not carry it shows the other half of that cost, since a behavior every unit must re-declare is a behavior a new unit can silently miss. The same absence also reshapes sub-agent orchestration (Claude Code's synchronous, shared-workspace Task tool versus Science's asynchronous `host.delegate` with its collect-and-steer SDK) and provenance-tracking (a rule-plus-hook on Code, a metadata-database-reading skill on Science).
 
 The general pattern — and this is the thing to carry forward — is: **when a platform lacks a shared interception point, a cross-cutting concern that was wired once as a hook must instead be re-declared in every unit that wants it.** You will meet this exact shape again outside these toolkits: a logging concern is middleware you write once in a framework that supports it, and a line repeated in every request handler in one that does not. The toolkits are one instance of a general fact about where a platform lets you centralize behavior.
 
@@ -61,15 +61,15 @@ The general pattern — and this is the thing to carry forward — is: **when a 
 
 ## 4. The three tiers — the model that tells you what is shared
 
-Because the two toolkits share a methodology but diverge by platform, every item in them falls into exactly one of three relationships. This is the single most useful thing to internalize, because it converts "why is this here and not there?" from a puzzle into a lookup. The authority for the classification lives in the companion guide `TWIN_ARCHITECTURE.md`, and the tiers are these:
+Because the two toolkits share a methodology but diverge by platform, every item in them falls into exactly one of three relationships. This is the single most useful thing to internalize, because it converts "why is this here and not there?" from a puzzle into a lookup. The authority for the classification lives in two machine docs — `SHARED_VS_DIVERGENT.machine.md` and `PORT_DIRECTION_EXCLUSIONS.machine.md` — and the tiers are these:
 
-1. **Tier S — Shared exactly.** Same discipline, same *kind* of carrier (a skill maps to a skill, an agent to a profile), on both sides. These are the platform-neutral methodology items — the statistics skills, the domain-science skills, the writing skills, most of the modeling agents. A change to one *should* be mirrored to the other. **The crucial caveat:** "shared" means shared *name and discipline*, not shared *bytes*. Of the 40 same-name skills, **zero are byte-identical** across the two toolkits; the median body similarity is 0.96, and a few diverge much further (`machine-md` sits at 0.65). So even a Tier-S item carries platform-adapted wording inside — you mirror the *idea*, adjusting the platform vocabulary, never copy the file.
+1. **Tier S — Shared exactly.** Same discipline, same *kind* of carrier (a skill maps to a skill, an agent to a profile), on both sides. These are the platform-neutral methodology items — the statistics skills, the domain-science skills, the writing skills, most of the modeling agents. A change to one *should* be mirrored to the other. **The crucial caveat:** "shared" means shared *name and discipline*, not shared *bytes*. Of the 40 same-name skills at the earlier measurement (not re-derived at today's counts), **zero are byte-identical** across the two toolkits; the median body similarity is 0.96, and a few diverge much further (`machine-md` sits at 0.65). So even a Tier-S item carries platform-adapted wording inside — you mirror the *idea*, adjusting the platform vocabulary, never copy the file.
 2. **Tier C — Shared conceptually, different mechanism.** The discipline is the same on both sides, but the *carrier* differs because the platforms differ — and here you must **never byte-copy across the boundary.** You re-express the concept in the other platform's mechanism. Every example from Section 3 is a Tier-C pair: verification (hooks vs. reviewer), the completion alert (`xbeep` vs. `audible-alert`), the cold-start handoff (`baton` vs. `handoff-brief`), sub-agent orchestration (Task tool vs. `host.delegate`), provenance (rule-plus-hook vs. `provenance-guard` skill), document rendering (`folio` vs. `folio-science`), and statistics guidance (a *skill* on Code, a *profile* on Science). A Tier-C item that copies the mechanism instead of re-expressing it is a defect — it drags one platform's runtime into the other's file.
 3. **Tier P — Platform-only.** Meaningful on one platform, inapplicable on the other, and never ported. On the Science side: the project-local `ECOSYSTEM_MODEL_TRACER` profile. On the Code side: `capability-audit` and the entire `xbeep` hook family.
 
-**Why the roster counts differ, explained by tier.** CCRT's 17/39 against CSRTB's 17/44 is not an asymmetry to correct. The profile side carries the project-local `ECOSYSTEM_MODEL_TRACER` and a `GENERALIST` with no Code twin. And `research-stats-advisor` is a *skill* on Code but a *profile* on Science — a carrier difference, not a missing item. Meanwhile CCRT has agents Science lacks *as agents* (`machine-doc-reviewer`, `sci-file-indexer`, `version-control-docs`), some of which exist on the Science side under a different carrier, because a Science skill legitimately maps to a Code rule or hook. The rule when you meet any count difference: **classify the item into S, C, or P first.** An item you cannot classify defaults to "port candidate" (open work), never silently to "excluded."
+**Why the roster counts differ, explained by tier.** CCRT's 18 agents and 47 skills against CSRTB's 18 profiles and 52 skills is not an asymmetry to correct. The profile side carries the project-local `ECOSYSTEM_MODEL_TRACER` and a `GENERALIST` with no Code twin. And `research-stats-advisor` is a *skill* on Code but a *profile* on Science — a carrier difference, not a missing item. Meanwhile CCRT has agents Science lacks *as agents* (`machine-doc-reviewer`, `sci-file-indexer`, `version-control-docs`), some of which exist on the Science side under a different carrier, because a Science skill legitimately maps to a Code rule or hook. The rule when you meet any count difference: **classify the item into S, C, or P first.** An item you cannot classify defaults to "port candidate" (open work), never silently to "excluded."
 
-### 4.1 CCRT roster — 17 agents
+### 4.1 CCRT roster — 18 agents
 
 Each agent lists the skills it names in its own file as collaborators; **bold** marks a skill it loads by default (always on), plain text marks one it loads on demand.
 
@@ -91,11 +91,12 @@ Each agent lists the skills it names in its own file as collaborators; **bold** 
 | `research-data-manager` | research-data organization, archival naming, keep-vs-discard decisions, provenance judgment across project lifecycles | research-stats-advisor |
 | `sci-file-indexer` | Index scientific literature folders into metadata tables with DOI/CrossRef curation and duplicate detection | plan, sci-file-index |
 | `science-writing-stylist` | Diagnoses and revises scientific prose structure using OCAR framework and sentence-level craft to improve clarity and reader comprehension | _(none — self-contained)_ |
+| `software-developer` | Implements, extends, and refactors research software to a spec — pipelines, modules, CLIs, and the tests that ship with them — and hands every substantial build to `code-review-debugger` instead of self-certifying | refactoring, **software-craft**, testing-discipline |
 | `version-control-docs` | Manage code versions, create documentation, organize project structure, and preserve working code | plan |
 
-### 4.2 CSRTB roster — 17 profiles
+### 4.2 CSRTB roster — 18 profiles
 
-Same convention. *Note:* every CSRTB profile also references `audible-alert` as a standing behavior (Section 3 explains why); it is omitted from the collaborator column below to keep the genuine working-sets visible.
+Same convention. *Note:* every CSRTB profile except `SOFTWARE_DEVELOPER` also references `audible-alert` as a standing behavior (Section 3 explains why); it is omitted from the collaborator column below to keep the genuine working-sets visible.
 
 | Specialist | What it does | Key skills it reaches for |
 |---|---|---|
@@ -116,8 +117,11 @@ Same convention. *Note:* every CSRTB profile also references `audible-alert` as 
 | `RESEARCH_DATA_MANAGER` | Research-data lifecycle classification, organization, and provenance across long-running projects | _(none — self-contained)_ |
 | `RESEARCH_STATS_ADVISOR` | Research methodology and statistical guidance for complex hierarchical data analysis decisions | aggregation-jensen-bias, brms-hierarchical-fitting, mgcv-temporal-gam, temporal-block-cv |
 | `SCIENCE_WRITING_STYLIST` | Diagnoses and revises scientific prose using OCAR story structure, paragraph, sentence, and word craft | writing-science |
+| `SOFTWARE_DEVELOPER` | Implements, extends, and refactors research software to a spec — pipelines, modules, CLIs, and their tests — and hands every substantial build to `CODE_REVIEW_DEBUGGER` instead of self-certifying | refactoring, software-craft, testing-discipline |
 
-### 4.3 CCRT skills — 46, grouped by function
+### 4.3 CCRT skills — 47 as of 7 August 2026, grouped by function
+
+*The group tables below were compiled at an earlier count and list a representative selection rather than every skill; the per-group totals have not been re-derived against the current tree.*
 
 ***Orchestration*** (7 skills)
 
@@ -183,7 +187,9 @@ Same convention. *Note:* every CSRTB profile also references `audible-alert` as 
 | `julia-performance-correctness` | Diagnose Julia performance issues, type instability, dispatch problems, and correctness gotchas in numerical code |
 | `toolkit-extension-authoring` | Author Claude Code customizations with idempotent installation, merge contracts, and verification gates |
 
-### 4.4 CSRTB skills — 51, grouped by function
+### 4.4 CSRTB skills — 52 as of 7 August 2026, grouped by function
+
+*Same caveat as Section 4.3: the groups below are a representative selection, not a re-derived enumeration.*
 
 ***Orchestration*** (8 skills)
 
@@ -302,7 +308,7 @@ Put the pieces together and the toolkits become directly actionable:
 - **Building a model?** Pick the modeler that owns your mechanism (state-evolution, optimality, flux-transfer, or reconstruction), let it own the physics, and let it defer the statistics to the stats authority rather than deciding the method itself.
 - **Porting a feature between the toolkits?** Classify it into a tier *first*. Tier S: mirror the idea, adjusting platform vocabulary — never copy the bytes. Tier C: re-express the discipline in the other platform's mechanism — never drag a `host.*` call into a Code hook or vice versa. Tier P: do not port it at all. When in doubt, treat it as a port candidate and open the question, never as a silent exclusion.
 
-The reward for learning the one platform difference and the three-tier model is that the roster stops being a wall of 117 near-duplicate names and becomes a map you can navigate: you know which specialist to summon, which skills it will bring, and exactly what will and will not survive a crossing between the two platforms.
+The reward for learning the one platform difference and the three-tier model is that the roster stops being a wall of 135 near-duplicate names and becomes a map you can navigate: you know which specialist to summon, which skills it will bring, and exactly what will and will not survive a crossing between the two platforms.
 
 ---
 
@@ -310,11 +316,11 @@ The reward for learning the one platform difference and the three-tier model is 
 
 ## Side-by-side comparison — CCRT (Claude Code) vs CSRTB (Claude Science)
 
-Tier legend: **S** = shared role/skill (same name + discipline; system-prompt/skill bodies carry platform-adapted wording) · **C** = shared discipline via a DIFFERENT carrier (never byte-copy) · **P** = platform-only (never ported). Authority: `TWIN_ARCHITECTURE.md`.
+Tier legend: **S** = shared role/skill (same name + discipline; system-prompt/skill bodies carry platform-adapted wording) · **C** = shared discipline via a DIFFERENT carrier (never byte-copy) · **P** = platform-only (never ported). Authority: `SHARED_VS_DIVERGENT.machine.md`, `PORT_DIRECTION_EXCLUSIONS.machine.md`.
 
-> Measured note: of the 35 same-name shared skills, 0 are byte-identical across platforms; median body similarity is 0.95 (20 cosmetic ≥0.90, 7 light-adaptation, 8 substantive <0.70). "Shared" means shared name + discipline, not shared bytes.
+> Measured note (earlier-roster measurement; not re-derived at today's counts): of the 35 same-name shared skills then paired, 0 are byte-identical across platforms; median body similarity is 0.95 (20 cosmetic ≥0.90, 7 light-adaptation, 8 substantive <0.70). "Shared" means shared name + discipline, not shared bytes.
 
-### Roles — CCRT agents (17) ↔ CSRTB profiles (17)
+### Roles — CCRT agents (18) ↔ CSRTB profiles (18)
 
 | CCRT agent | CSRTB profile | Tier | Relationship |
 |---|---|---|---|
@@ -332,6 +338,7 @@ Tier legend: **S** = shared role/skill (same name + discipline; system-prompt/sk
 | `prompt-engineer` | `PROMPT_ENGINEER` | S | shared role, same charter |
 | `research-data-manager` | `RESEARCH_DATA_MANAGER` | S | shared role, same charter |
 | `science-writing-stylist` | `SCIENCE_WRITING_STYLIST` | S | shared role, same charter |
+| `software-developer` | `SOFTWARE_DEVELOPER` | S | shared role, same charter |
 | `research-stats-advisor` *(SKILL)* | `RESEARCH_STATS_ADVISOR` *(profile)* | C | carrier asymmetry: CC = skill, CS = profile |
 | `machine-doc-reviewer` | — | P | CCRT-only agent (CS: machine-md discipline via skill/reviewer) |
 | `sci-file-indexer` | — | P | CCRT-only agent (CS: sci-file-index SKILL, no indexer profile) |
@@ -339,7 +346,7 @@ Tier legend: **S** = shared role/skill (same name + discipline; system-prompt/sk
 | — | `ECOSYSTEM_MODEL_TRACER` | P | P — project-local (CliMA/Emerald) |
 | — | `GENERALIST` | — | CSRTB-only profile (no CC agent twin) |
 
-### Skills — CCRT (39) ↔ CSRTB (44)
+### Skills — CCRT (47) ↔ CSRTB (52)
 
 | CCRT skill | CSRTB skill | Tier | Relationship |
 |---|---|---|---|

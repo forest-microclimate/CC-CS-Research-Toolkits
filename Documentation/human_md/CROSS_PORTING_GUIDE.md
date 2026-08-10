@@ -3,7 +3,10 @@
 
 ### The cross-porting workflow, worked through a real example
 
-Suppose you have improved something on one side of the twin. The writing detectors on Claude
+Suppose you have improved something on one side of the twin — the pair of sibling toolkits
+that carry one research methodology onto two platforms, each in that platform's own
+mechanisms, which the companion guide *One Methodology, Two Carriers* lays out in full. The
+writing detectors on Claude
 Code just got sharper, and you want Claude Science to gain the same sharpening. The move that
 suggests itself is to copy the improved file across. Do that and you will most likely break it
 in a way that makes no noise, because a Claude Code hook or a Claude Science delegation call

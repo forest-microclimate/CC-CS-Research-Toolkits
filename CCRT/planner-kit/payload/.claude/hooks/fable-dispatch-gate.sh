@@ -14,8 +14,9 @@
 #       Neither => DENY. A NAMED brief that is absent/unreadable => DENY (a dangling brief
 #       pointer is a launch defect, not a parse error).
 #     CHECK 2 (routing explicitness; when a brief resolves): the brief carries a ^ROLE: line,
-#       AND anywhere in the file either references a persona file (agents/<name>.md) or states
-#       the literal `no specialist fits`. Missing => DENY. (Scope = the WHOLE brief — persona
+#       AND anywhere in the file names ONE of the THREE legal ROLE forms — a persona pointer
+#       `agents/<name>.md`, a skill pointer `skills/<name>/SKILL.md`, or the literal
+#       `no specialist fits`. Missing => DENY. (Scope = the WHOLE brief — persona and skill
 #       read-pointers legitimately ride the WARMUP slot, not the ROLE line.)
 #     CHECK 3 (verified-launch; fable tier only, when a brief resolves): the brief carries the
 #       WARMUP token — fable-tier children launch with warmup reads so serving is certifiable
@@ -107,7 +108,7 @@ desc = ti.get("description") if isinstance(ti.get("description"), str) else ""
 cwd = obj.get("cwd") if isinstance(obj.get("cwd"), str) else ""
 
 # ---------- TRIGGER + ALLOWLIST --------------------------------------------------
-# THE PINNED ROUTES — the project-scoped agents whose own frontmatter carries the model, so
+# THE PINNED ROUTES — the allowlisted route agents whose own frontmatter carries the model, so
 # the launch needs no model param. KP2 (2026-08-07) adds `fable-subplanner`: it is fable-TIER,
 # so it joins FABLE_TIER_TYPES and CHECK 3's WARMUP requirement applies to it exactly as to
 # the executor; it is PINNED, so it is one of the certified alternatives the advisory names.
@@ -201,12 +202,19 @@ if not re.search(r"^ROLE:", text, re.M):
     deny("CHECK 2 (routing explicitness)",
          "the brief has no ROLE: line.",
          "add a ROLE: line naming the persona and the model route (see the template's ROLE slot).")
-if not (re.search(r"agents/[A-Za-z0-9_-]+\.md", text) or "no specialist fits" in text):
+# THE THREE LEGAL ROLE FORMS (HDG1, 2026-08-07). The routing doctrine permits all three —
+# a persona pointer, a SKILL-ONLY pointer (the specialization rides one or more SKILL.md
+# files, no agent persona fits), or the explicit no-specialist declaration — so all three
+# pass here AND the deny text below names all three. WHY the text matters as much as the
+# predicate: the fix-it line is what a blind session follows, so one that teaches only two
+# forms denies a legal launch and then steers the retry away from the form it should use.
+if not (re.search(r"agents/[A-Za-z0-9_-]+\.md", text)
+        or re.search(r"skills/[A-Za-z0-9_-]+/SKILL\.md", text)
+        or "no specialist fits" in text):
     deny("CHECK 2 (routing explicitness)",
-         'the brief neither references a persona file (agents/<name>.md) nor states '
-         '"no specialist fits".',
-         "point at the persona SKILL/agent file the child should read, or state the literal "
-         '"no specialist fits".')
+         "the brief names none of the THREE legal ROLE forms.",
+         "name ONE of them anywhere in the brief: a persona pointer agents/<name>.md, a "
+         'skill pointer skills/<name>/SKILL.md, or the literal "no specialist fits".')
 
 # ---------- CHECK 3: verified-launch (fable tier only; reads the BRIEF) ----------
 if fable_tier and "WARMUP" not in text:

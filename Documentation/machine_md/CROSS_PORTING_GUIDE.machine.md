@@ -1,5 +1,5 @@
 # CROSS_PORTING_GUIDE.machine.md — Porting an Improvement Across the Twin (the cross-porting workflow, worked through a real example)
-# STATUS: CURRENT (2026-07-30). Machine root of the CROSS_PORTING_GUIDE guide; human twin in ../human_md/.
+# STATUS: CURRENT (2026-07-30). Machine root of the CROSS_PORTING_GUIDE guide; human twin in ../human_md/. TWIN CURRENCY RE-VERIFIED 2026-08-09 (PC6b): this root was NOT touched by the 2026-08-09 payload restructure and the twin is LEVEL — probed root-against-twin for every restructure-sensitive token and the two agree hit-for-hit, the sole numeric coincidence (`53`) being a quoted historical incident on both sides, not a roster count.
 <!-- SPDX-License-Identifier: MIT · Copyright (c) 2026 Neill Prohaska <forest.microclimate@gmail.com> -->
 # FORM: machine-md · durable reference · primary reader = LLM · atom-preserving translation of the human twin (INVARIANT.convert: every rule/fact/step kept; only packaging changes). RESTS ON: the three tiers laid out in the companion twin-architecture guide (assumed, not re-taught). WORKED CASE throughout = **the J-series**, the pass that carried the Claude Code writing-engine upgrades back into the Claude Science bundle.
 

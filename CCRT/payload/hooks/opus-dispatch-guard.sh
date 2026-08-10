@@ -24,7 +24,8 @@
 #   * A FULL id is deliberately NOT denied here. The Task `model` param accepts ALIASES ONLY
 #     (measured 2026-08-04, live InputValidationError), so a full id in this field is rejected by
 #     the harness before any policy question arises; and the sanctioned supervised route names an
-#     AGENT (subagent_type: opus5-executor, whose project-scoped frontmatter carries the pin), not
+#     AGENT (subagent_type: opus5-executor, whose OWN frontmatter carries the pin — it ships in the
+#     general payload, admitted by the build gate's NAMED allowlist of three route agents), not
 #     a model. A guard that denied the model name would not touch that route anyway, and a guard
 #     that denied the agent NAME would break the one shape the O-series exists to permit.
 #
@@ -129,7 +130,7 @@ reason = (
     "  - OMIT the model param => you inherit the MAIN model, which is rank 4 of the precedence "
     "and is NOT a tier choice (measured 2026-08-04)\n"
     "  - supervised opus-5 work: do NOT name a model. Launch subagent_type "
-    "\"opus5-executor\" (a project-scoped agent whose own frontmatter carries the pin) from a "
+    "\"opus5-executor\" (an allowlisted route agent whose own frontmatter carries the pin) from a "
     "plan whose routing track declares \"supervised\": true.\n"
     "An alias is never the sanctioned route at any scope: it re-resolves silently whenever "
     "Claude Code remaps it, which is how `opus` became barred with no file changing."

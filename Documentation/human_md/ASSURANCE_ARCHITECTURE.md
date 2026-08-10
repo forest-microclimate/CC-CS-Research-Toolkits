@@ -5,25 +5,66 @@
 
 ## 1. What this answers
 
-This document answers three questions you hit in the moment. A gate just refused something you
-did: what refused it, and why does it exist? You are adding a check of your own: which level
-does it belong at, and what does that level owe you? Someone asks whether the toolkit's
-assurances actually work: what is measured, and what is merely built?
+You ask for a piece of work to be handed off, and instead of starting, it stops. A short message
+comes back naming something your instructions left out, telling you how to add it, and pointing at
+a template. Nothing crashed and nothing was lost. The work simply did not begin, and the thing that
+stopped it is not something you remember installing.
+
+Something just refused you: what was it, and why does it exist? That is the question this document
+answers first, and the answer is that the refusal came from one of five kinds of safeguard this
+toolkit ships. Knowing which one acted tells you what to do next.
+
+Here is the setting the whole document assumes. A person directs an AI assistant, and that
+assistant hands pieces of the work to other, separate assistants — **subagents**, which the
+entries below also call *children*. Each is launched with one written assignment, holds no memory
+of your conversation, returns one report, and is then gone. Two platforms carry this toolkit: Claude Code runs as a program on your own computer, with
+real files and a real shell, while Claude Science runs in a sandbox you reach through a browser,
+and every difference between the two versions of the toolkit descends from that one fact. The
+safeguards below are small programs running on your own machine, which is what lets them stop an
+action before it happens rather than comment on it afterwards. This document explains the five
+kinds, so you can tell which one just acted and where a check of your own belongs. If you want the
+working loop instead — how a coordinator writes an assignment, collects the report, and decides
+what happens next — read *Inside the Loop* first; for why this toolkit exists in two versions at
+all, read *One Methodology, Two Carriers*.
+
+Three questions bring people to this page, and each is answered in a different place below. A gate
+just refused something you did: what refused it, and why does it exist? You are adding a check of
+your own: which level does it belong at, and what does that level owe you? Someone asks whether the
+toolkit's assurances actually work: what is measured, and what is merely built?
 
 The toolkit's assurances are not one mechanism. They are five levels, and each does a job the
-neighbouring levels cannot do. **Record** keeps facts alive past the session that produced
-them. **Convention** gives decisions named shapes. **Advise** names a miss without blocking
-anything. **Enforce** makes a silent omission impossible. **Measure** turns efficacy into a
-number instead of an assertion.
+neighbouring levels cannot do. **Record** keeps facts alive past the session that produced them.
+**Convention** gives decisions named shapes. **Advise** names a miss without blocking anything.
+**Enforce** makes a silent omission impossible. **Measure** turns efficacy into a number instead of
+an assertion.
 
-What follows takes them in order: section 2 is the law the whole ladder rests on, section 3 the
-five levels themselves, section 4 what each level buys that its neighbours cannot, section 5 the
-honest limit, section 6 one compact entry per shipped mechanism, section 7 the control surface,
-and section 8 how to add a level of your own.
+### The four words the rest of this document rests on
 
-A companion document, `MODEL_SUBSTITUTION_AND_VERIFIED_LAUNCH.machine.md` and its human twin,
-owns the serving-substitution failure and the patch built around it. This document cites that
-story where it bears; it never retells it.
+Four terms carry almost everything below, and they are worth fixing before the argument starts.
+
+The **harness** is the software that runs your session: it launches the assistant, carries out the
+tool calls the assistant asks for, and ends its turns. At fixed points in that sequence the harness
+fires named **events**: before a tool call, after one, when a subagent finishes, when a turn ends,
+and when a session starts. A **hook** is a small program you register against one of those events,
+which the harness then runs automatically, handing it a description of what is about to happen. A
+hook can put a note in front of the model, or refuse the action outright, and that difference is
+the distinction this whole document turns on: a **gate** is a check sitting at a decision moment,
+an **advisory** gate names what is missing and lets the action proceed, and an **enforcing** gate
+refuses the action and says how to fix it. Last, an **exit code** is the number a program hands
+back when it finishes, by convention 0 for success. The measuring instruments here use 0, 1 and 2
+to carry a verdict, while every hook here returns 0 no matter what it decides, for a reason
+section 6 gives.
+
+With those in hand, the rest follows in order: section 2 is the law the whole ladder rests on,
+section 3 the five levels themselves, section 4 what each level buys that its neighbours cannot,
+section 5 the honest limit, section 6 one compact entry per shipped mechanism, section 7 the
+control surface, and section 8 how to add a level of your own.
+
+One neighbouring document is cited throughout and never summarised. *When a Model Request Is Not
+the Model Run* owns a single failure — a request for one model that a remote service answered with
+a different one — and the verification patch built around it. This document cites that story where
+it bears on the ladder; it never retells it. (The file is
+`MODEL_SUBSTITUTION_AND_VERIFIED_LAUNCH.machine.md`, with its human twin beside it.)
 
 ## 2. The law beneath: structural over disciplinary
 
@@ -33,32 +74,71 @@ only if the prompt was loaded and the model then chose to comply. A hook on the 
 regardless of both.
 
 This is a conclusion drawn from recorded defects rather than a matter of taste, and three of the
-shipped mechanisms carry their own origin in their header comments.
+shipped mechanisms carry their own origin in their header comments. Each of the three is a case
+where the advice already existed, in writing, and did not arrive.
 
 The first is a hole in a model ban. The ban held at build time, where a barred identifier cannot
 ship in the payload, and at plan time, where a plan cannot declare one. A launch typed in the
 moment reached the barred model with no check at all, because neither of those gates sits on the
-dispatch path. The dispatch guard exists to close that hole and nothing else.
+dispatch path — the path a launch actually travels. The dispatch guard exists to close that hole
+and nothing else.
 
-The second is a routing mandate that lived in the planner's prompt. It produced a plan declaring
-six delegation tracks, four of which the lead then ran itself. The plan-approval gate lints the
-routing block at the tool call, so the plan is corrected before the user ever sees it.
+The second is a routing mandate that lived in the prompt of the planner, the coordinating agent
+that decomposes the work and hands out the pieces. It produced a plan declaring six delegation
+tracks, four of which the lead then ran itself. The plan-approval gate lints the plan's routing
+block — the part that names who runs each track — at the tool call, so the plan is corrected
+before the user ever sees it.
 
-The third is a set of launch conventions for a verified frontier-tier child. They kept failing to
-reach sessions that had never loaded the documents stating them. The dispatch gate enforces the
-launch shape, so the convention arrives whether or not the doctrine did.
+The third is a set of launch conventions for a verified frontier-tier child, where *frontier tier*
+means the most capable and most costly model band, kept for the hardest pieces of work; *Inside the
+Loop* owns that vocabulary. Those conventions kept failing to reach sessions that had never loaded
+the documents stating them. The dispatch gate enforces the launch shape, so the convention arrives
+whether or not the doctrine did.
 
-A corollary follows from the same reasoning. When an action's costs are asymmetric, default
-toward the cheap-to-reverse side and require an explicit token for the expensive one. Every gate
-described here fails open on its own internal error: it exits zero always, the refusal rides in
-structured output rather than in the exit code, and the error is logged. A broken guard must
-never wedge a session, and a silent fail-open is itself the bug, which is why the fail-open gets
-a log line.
+A corollary follows from the same reasoning. When an action's costs are asymmetric, default toward
+the cheap-to-reverse side and require an explicit token for the expensive one. Every gate described
+here fails open on its own internal error: it exits zero always, the refusal rides in structured
+output rather than in the exit code, and the error is logged. A broken guard must never wedge a
+session, and a silent fail-open is itself the bug, which is why the fail-open gets a log line.
 
 The law says to prefer a mechanism. It does not say a mechanism can do everything, and section 5
-states what no gate on this ladder can do.
+states what no gate on this ladder can do. Read those two sections as one claim in two halves. A
+check that fires beats an instruction someone has to remember, and no check that fires can make the
+decision it forces a good one. Taking the first half without the second turns this document into a
+promise it does not make.
 
 ## 3. The five levels
+
+<!--FIG: The five-level ladder: each level in order, with what it buys that its neighbours cannot. | 88% -->
+
+```mermaid
+flowchart LR
+    L1["<b>1 RECORD</b><br/>the facts outlive<br/>the session"]
+    L2["<b>2 CONVENTION</b><br/>decisions have<br/>named shapes"]
+    L3["<b>3 ADVISE</b><br/>a miss is named,<br/>nothing is blocked"]
+    L4["<b>4 ENFORCE</b><br/>a silent omission<br/>becomes impossible"]
+    L5["<b>5 MEASURE</b><br/>efficacy is a number,<br/>never an assertion"]
+    B1["without it: a gate that fired and<br/>a gate that never fired look the same"]
+    B2["without it: there is nothing<br/>for a check to check against"]
+    B3["it buys: the whole class of cases<br/>where refusing would be wrong"]
+    B4["it buys: the cases advice never<br/>reaches, because nobody read it"]
+    B5["without it: the other four<br/>are a story about intent"]
+    L1 --> L2 --> L3 --> L4 --> L5
+    L1 -.-> B1
+    L2 -.-> B2
+    L3 -.-> B3
+    L4 -.-> B4
+    L5 -.-> B5
+    classDef lvl fill:#E8763A,stroke:#B4551F,color:#ffffff
+    classDef buy fill:#6B7280,stroke:#374151,color:#ffffff
+    class L1,L2,L3,L4,L5 lvl
+    class B1,B2,B3,B4,B5 buy
+```
+
+The one thing to take from the figure: the levels are ordered, and each rests on the one before it.
+A check can only check a shape that a convention already defined, and a measurement can only measure
+against facts a record already kept. Section 4 argues each of those five claims in turn; this
+section says what actually sits at each level.
 
 ### Level 1 — Record: facts survive
 
@@ -66,19 +146,21 @@ Nothing above this level means anything if the facts do not outlive the session 
 them.
 
 Four **append-only ledgers** carry the record, each written so a worker with no prior context can
-read it. The change ledger takes one dated row per change and never edits a past row. The
-efficacy ledger takes one row per check, carrying its status and the measurement that justifies
-that status. The code inventory registers every script, so the next worker uses or adapts one
-rather than rebuilding it. The plan ledger records which plan is active, which is parked, and
-which is finished.
+read it — a *ledger* here being a running file that gets added to and never rewritten. The change
+ledger takes one dated row per change and never edits a past row. The efficacy ledger takes one row
+per check, carrying its status and the measurement that justifies that status. The code inventory
+registers every script, so the next worker uses or adapts one rather than rebuilding it. The plan
+ledger records which plan is active, which is parked, and which is finished.
 
 **Receipts discipline** governs how a current fact may be stated: only from a fresh read or
 measurement made for that claim. Recollection cannot be audited, and a command's output can.
 
 **Serving stamps** decide the model identity of a run. That identity is read from the API
-response's own per-call `model` field in the run's own transcript, the only record downstream of
-what actually ran. Every other signal — a launch argument, a resolution, a header in the
-interface, the run's own testimony about itself — records intent or belief.
+response's own per-call `model` field in the run's own transcript — the session's line-by-line
+record file — and it is the only record downstream of what actually ran. Every other signal, whether
+a launch argument, a resolution, a header in the interface, or the run's own testimony about
+itself, records intent or belief. *When a Model Request Is Not the Model Run* is where that
+distinction is worked out in full.
 
 **Completion telemetry** appends one structured row per subagent completion, clean completions
 included, because a rate needs a denominator. Each row carries the hook build that wrote it, so a
@@ -87,30 +169,35 @@ later analyst can separate pre-fix from post-fix populations instead of pooling 
 ### Level 2 — Convention: decisions have named shapes
 
 A decision with no named shape cannot be checked by anything: not by a hook, not by a reviewer,
-not by the person who made it.
+not by the person who made it. Everything at levels 3 and 4 is checking conformance to a shape
+defined here.
 
 **The project contract** is a project-level `CLAUDE.md` stating the supervisory workflow, the
 folder contract, and the standing rules. It is installed into the project root rather than
 remembered.
 
-**The six-element brief** fixes what a subagent gets: an assignment with a checkable
-done-condition; read-paths the child reads itself rather than receiving as a summary; a
-write-path inside the workspace for all products, code included; a report cap giving a line
-budget plus the receipts each claim must quote; the stop-when-stuck rule verbatim; and the scope
-rule verbatim. An empty element means the brief is not ready to launch. The fill-in form ships at
-`dev/briefs/_TEMPLATE.md`.
+**The seven-element brief** fixes what a subagent gets — the *brief* being the written assignment a
+subagent is launched with, and the only thing it knows about the job. Its first six elements are: an
+assignment with a checkable done-condition; read-paths the child reads itself rather than receiving
+as a summary; a write-path inside the workspace for all products, code included; a report cap
+giving a line budget plus the receipts each claim must quote; the stop-when-stuck rule verbatim;
+and the scope rule verbatim. The seventh is the role assignment, described in its own entry below. An empty element means the brief is not ready to launch. The fill-in
+form ships at `dev/briefs/_TEMPLATE.md`.
 
 **Routing blocks with owners** require a plan's delegation block to name, for each track, the
-executor and also an owner that says more than the executor tag — the persona or skill
-assignment — or else to carry the explicit "no specialist fits" fallback.
+executor and also an owner that says more than the executor tag — the persona or skill assignment —
+or else to carry the explicit "no specialist fits" fallback.
 
 **The role assignment** is the `ROLE:` line in a brief, naming which persona the child runs as,
-with the brief pointing at that persona's file.
+with the brief pointing at that persona's file. A *persona* is a role definition kept in a file,
+which a subagent is told to read and then operate as.
 
-**Persona and skill delivery by read-pointer** means the brief names the persona file or
-`SKILL.md` path and the child reads it. Two things follow. The child can audit what it was given,
-and for a frontier-tier child those opening reads double as the warmup that makes serving
-certifiable early.
+**Persona and skill delivery by read-pointer** means the brief names the persona file or `SKILL.md`
+path and the child reads it. Handing the child a summary instead would be the obvious alternative,
+and it is the wrong one. Two things follow from making the child fetch the source itself. The child can audit what it was given, rather than trusting a précis that already decided
+what mattered. And for a frontier-tier child, those opening reads double as the warmup — the first
+few real reads a subagent makes — that lets the serving identity be certified early, before any
+work is banked on it.
 
 ### Level 3 — Advise: misses get named, never blocked
 
@@ -119,11 +206,12 @@ where refusing would be wrong more often than it would be right.
 
 The **brief-slot advisory** names any unfilled brief slot at launch time and never refuses the
 launch. The **completion-telemetry nudge** puts one advisory note in front of the model when a
-finishing child's own final message scans at severity 2 or worse. The **watchdog scaffold**
-prints, after a frontier-tier launch returns, the ready-to-run certification command with the
-child's transcript path already substituted, together with the exit-code legend, so the next
-action requires zero recall. **Plan-state re-injection** restores the active plan's name, its
-snapshot path, and the resume protocol at each session boundary — startup, resume, and
+finishing child's own final message scans at severity 2 or worse. The **watchdog scaffold** prints,
+after a frontier-tier launch returns, the ready-to-run certification command with the child's
+transcript path already substituted, together with the exit-code legend, so the next action
+requires zero recall — the *watchdog* being the small program that reads a run's opening serving
+stamps and returns one of three verdicts. **Plan-state re-injection** restores the active plan's
+name, its snapshot path, and the resume protocol at each session boundary — startup, resume, and
 post-compaction — for roughly a hundred tokens per boundary event rather than a per-prompt tax.
 
 ### Level 4 — Enforce: a silent omission becomes impossible
@@ -133,7 +221,7 @@ which is precisely why advice does not reach them.
 
 **The dispatch deny-gate** refuses a frontier-tier launch that names no brief and opens with no
 warmup, or names a brief that is absent or unreadable, or names a brief missing its `ROLE:` line,
-its persona pointer, or, at the frontier tier, its warmup slot.
+its persona pointer, or, at the ceiling tier, its warmup slot.
 
 **The plan-approval gate** refuses the plan-approval tool call when the plan's routing block is
 missing or malformed, owner-explicitness and multi-stage enumeration included, so the plan is
@@ -157,23 +245,44 @@ exit code. **Completion telemetry**, which Level 1 collects as rows, becomes a r
 carry denominators and build tags, so "did the fix work" is answerable by comparing populations
 rather than by assertion.
 
-**The adherence scorecard** scores a session's transcripts on five greppable dimensions as n over
+**The adherence scorecard** scores a session's transcripts on six greppable dimensions as n over
 N, where n counts compliant cases and N counts the opportunities actually observed. It dates each
-opportunity by the transcript record that carries it, so an interrupted time-series across a
-gate's ship instant stays interpretable instead of being smeared by sessions that straddle it. It
-measures; it never blocks and never edits. The workflow kit installs it at
-`<project>/dev/tools/adherence_scorecard.py`, with its fixture guard beside it, so the method by
-which the grades in section 6 were earned is one you re-run on your own sessions rather than
-merely a citation. Its lineage classification derives from your project root, so your sessions
-score as yours.
+opportunity by the transcript record that carries it, so an interrupted time-series across a gate's
+ship instant stays interpretable instead of being smeared by sessions that straddle it. Five of the
+six dimensions score how well the gated launches were run. The sixth, tier-explicitness, scores
+whether the tier was decided at all, so its denominator is every delegate-class launch rather than
+only the gated ones. A launch counts as compliant there when it carries a model argument or names a
+pinned or probe agent type: a pinned type is itself an explicit tier choice, because the model then
+comes from that agent's own frontmatter pin. An omitted argument sits at the bottom of the
+harness's four-rank precedence order and simply requests whatever the main model happens to be.
+Such a launch is legal, and sometimes it is the right one, so the dimension measures how often the
+choice was recorded, never whether it was wise. It measures; it never blocks and never edits. The workflow
+kit installs it at `<project>/dev/tools/adherence_scorecard.py`, with its fixture guard beside it,
+so the method by which the grades in section 6 were earned is one you re-run on your own sessions
+rather than merely a citation. Its lineage classification derives from your project root, so your
+sessions score as yours.
 
 **The efficacy-ledger discipline** fixes the vocabulary every grade in section 6 uses, and it has
 five values. `attempted-untested` means built but not yet measured, and it is the status of
-anything new by default. `fixture-measured` means exercised against labeled fixtures or test
-cases, behaving as specified on those cases. `measured-working` means measured before and after
-on real outcomes, stated with the numbers. `measured-regressed` holds the same evidence standard
-and the opposite result. `retired` means no longer in use. No check moves past
-`attempted-untested` without a cited measurement, and "I built it" is never a measurement.
+anything new by default. `fixture-measured` means exercised against labeled fixtures or test cases,
+behaving as specified on those cases — a *fixture* being a saved test case with a known right
+answer. `measured-working` means measured before and after on real outcomes, stated with the
+numbers. `measured-regressed` holds the same evidence standard and the opposite result. `retired`
+means no longer in use. No check moves past `attempted-untested` without a cited measurement, and
+"I built it" is never a measurement.
+
+**The verdict is ceiling-tier work, and its inputs are not.** The final verdict pass over a
+work-product — the go/no-go synthesis, the adversarial adjudication, the release-gate reading — is
+not delegable downward. The checking work-pieces that feed it — guard runs, stamp greps, fixture
+batteries, line-level review sweeps — tier by their own difficulty and delegate down like any other
+work. Record who holds the verdict. The reason is that the moment a wrong call is most expensive is
+exactly the moment a cheap tier is most tempting, and a verdict assembled by whoever happened to
+hold the pieces inherits their tier by accident rather than by decision. Its grade is
+`attempted-untested`: this is doctrine, and its behavioural efficacy accrues through the adherence
+time-series above, whose tier-explicitness dimension measures the recorded half of it per session,
+never through its having been written down. The routing side of the same doctrine — which work
+classes merit the ceiling, and what a non-ceiling main agent delegates — is owned by *When a Model
+Request Is Not the Model Run*, section 4, and is not restated here.
 
 ## 4. Why five — what each level buys that its neighbours cannot
 
@@ -186,7 +295,8 @@ convention above.
 
 **Advice** covers the large class where refusal would be wrong. An advisory that names a miss
 costs a line of context. A refusal that is wrong costs a retry, then a workaround, and eventually
-the operator switching the whole layer off, which is the real failure mode of over-enforcement.
+the operator switching the whole layer off, which is the real failure mode of over-enforcement. The
+danger of enforcing too much is not the one wrong refusal; it is the switch being thrown afterwards.
 
 **Enforcement** exists because advice reaches only an agent that reads it. The recorded failures
 in section 2 are all cases where the advice existed and did not arrive: the ban was written down,
@@ -196,11 +306,46 @@ fires when the doctrine did not load.
 Without **measurement**, the other four are a story. `attempted-untested` is the default for a
 reason: a mechanism's existence is evidence about the author's intent, never about its effect.
 
-That gives a rule for placing a new check. Choose the level by one question — what happens if the
-target behaviour is absent? If its absence is recoverable and often deliberate, advise. If its
-absence is silent and rarely deliberate, enforce. If you do not yet know, advise first, measure
-the rate, and promote afterwards. The tell to watch for: you are about to add an enforcement
-whose false-positive rate you cannot state, which means it should ship as advice and be measured.
+That gives a rule for placing a new check, and it turns on one question rather than on a taxonomy:
+what happens if the target behaviour is simply absent?
+
+<!--FIG: Placing a new check: one question decides the level, and the false-positive rate decides whether it may enforce. | 74% -->
+
+```mermaid
+flowchart TD
+    Q["A new check you want to add"]
+    ASK{"If the behaviour it targets<br/>is simply absent,<br/>what happens?"}
+    R1["recoverable,<br/>and often deliberate"]
+    R2["silent,<br/>and rarely deliberate"]
+    R3["you do not<br/>yet know"]
+    ADV["<b>ADVISE</b><br/>name the miss,<br/>block nothing"]
+    ENF["<b>ENFORCE</b><br/>refuse, and name<br/>the fix in the refusal"]
+    MEA["<b>MEASURE the rate</b><br/>then promote it<br/>if it earns the promotion"]
+    TELL["the tell: you cannot state its<br/>false-positive rate ⇒ it is advice, not enforcement"]
+    Q --> ASK
+    ASK -->|"absence is cheap"| R1
+    ASK -->|"absence is invisible"| R2
+    ASK -->|"unknown"| R3
+    R1 --> ADV
+    R2 --> ENF
+    R3 --> ADV
+    ADV --> MEA
+    MEA -->|"the rate justifies it"| ENF
+    TELL -.-> ADV
+    classDef q fill:#2E9BD6,stroke:#1C6FA0,color:#ffffff
+    classDef act fill:#E8763A,stroke:#B4551F,color:#ffffff
+    classDef con fill:#6B7280,stroke:#374151,color:#ffffff
+    class ASK q
+    class ADV,ENF,MEA act
+    class Q,R1,R2,R3 con
+    class TELL con
+```
+
+In words: if the absence of the behaviour is recoverable and often deliberate, advise. If it is
+silent and rarely deliberate, enforce. If you do not yet know, advise first, measure the rate, and
+promote afterwards. The tell to watch for is the one on the figure's grey node — you are about to
+add an enforcement whose false-positive rate you cannot state, which means it should ship as advice
+and be measured.
 
 ## 5. The honest limit
 
@@ -225,6 +370,14 @@ detector build or to the judgment checklist when no detector shape fits. Per-rou
 accumulate, and the rate-drop trend across rounds is the real efficacy measurement. A single
 round's count is a baseline, not a verdict.
 
+The residual has a **tier** as well as an owner, and this is the part that is easy to leave
+unmade. Because no gate here makes a decision wise, the wisdom has to come from somewhere, and
+"somewhere" is a routing decision: the final verdict pass sits at the ceiling tier and is not
+delegable downward, while the checking pieces that feed it delegate down by their own difficulty,
+as Level 5 sets out. A ladder that forces every decision to be recorded and well-formed, and then
+lets the verdict on those records fall to whichever tier happened to be holding the pieces, has
+moved the weak point rather than removed it.
+
 Every mechanism here can also be switched off, as section 7 describes. That is deliberate. An
 operator who sets the switch has made the layer inert on purpose, and a gate that ignored the
 switch would be a surprise. The consequence is worth stating plainly: these gates are a floor for
@@ -233,20 +386,27 @@ a cooperating operator, never a control over a determined one.
 Finally, a measurement is a statement about the conditions it was taken under. Where the measured
 thing is served remotely, its rates can drift on the scale of hours with no local change at all,
 so certification at launch carries the guarantee rather than configuration or a rate measured
-yesterday. `MODEL_SUBSTITUTION_AND_VERIFIED_LAUNCH.machine.md` holds that case in full.
+yesterday. *When a Model Request Is Not the Model Run* holds that case in full.
 
 ## 6. Mechanism entries
 
 Each entry below gives the file path an adopter has after install, where `<project>/` is the
 project root you installed the workflow kit into and `~/.claude/` is the global toolkit install;
 the harness event and matcher it registers on; what triggers it; what you see when it fires; how
-to test it; how to silence it; and its evidence grade, copied from the efficacy ledger.
+to test it; how to silence it; and its evidence grade, copied from the efficacy ledger. Every
+mechanism here was read at authoring time, no grade is upgraded in the writing of it, and nothing
+is described that the record does not carry.
 
-**The contract every hook entry shares.** Input is one JSON object on standard input. The exit
-code is always zero: a refusal rides in the structured output rather than in the exit code,
-because the model needs the reason in order to retry, and that retry is the point. Any internal
-error — no interpreter, unparseable input, an unexpected shape — is treated as indeterminate, so
-the hook fails open and logs. All of them are read-only apart from their own log lines.
+A word that first does real work in this section: a **matcher** is the narrowing filter written
+beside an event, naming which tools that event should apply to. A hook registered on PreToolUse
+with the matcher `Task|Agent` runs before a subagent launch and ignores every other tool call.
+
+**The contract every hook entry shares.** Input is one JSON object on standard input — the
+harness's description of what is about to happen, handed to the hook as text. The exit code is
+always zero: a refusal rides in the structured output rather than in the exit code, because the
+model needs the reason in order to retry, and that retry is the point. Any internal error — no
+interpreter, unparseable input, an unexpected shape — is treated as indeterminate, so the hook
+fails open and logs. All of them are read-only apart from their own log lines.
 
 **The test every hook entry shares**, and why it is valid. Every hook here is a pure reader of
 JSON on standard input, so replaying one crafted payload is the real firing path; nothing about a
@@ -280,8 +440,7 @@ teaches its adopter to ignore it.
 `Task|Agent`. It triggers on a subagent launch: the prompt or description naming a
 `dev/briefs/*.md` file is looked up, a substantive launch naming none gets a one-line note, and a
 trivial launch (a read-only searcher, a short prompt, no write intent) passes in silence. What you
-see is injected context naming the unfilled slots, which are the six brief elements plus the
-`ROLE:` routing line, all advisory. It emits no permission decision at all: it advises, it does not
+see is injected context naming the unfilled slots, which are the seven brief elements, the seventh being the `ROLE:` routing line, all advisory. It emits no permission decision at all: it advises, it does not
 deny. Silence it with `PLANNER_KIT_HOOKS=off`. Grade: `fixture-measured`.
 
 **Launch scaffold** — `<project>/.claude/hooks/fable-launch-scaffold.sh`, on PostToolUse with
@@ -306,9 +465,11 @@ live output receipt against a real ledger.
 ### 6.2 Enforce
 
 **Dispatch deny-gate** — `<project>/.claude/hooks/fable-dispatch-gate.sh`, on PreToolUse with
-matcher `Task|Agent`. This is the one deny-capable launch gate. It triggers on a launch whose
-subagent type is one of the two certified executor routes, or whose model argument names the
-ceiling tier; subagent types beginning `probe-` are allowlisted, since probe cells are
+matcher `Task|Agent`. This is the one deny-capable launch gate. It triggers on two kinds of
+launch: one whose subagent type is any of the three certified routes, and one whose model argument
+names the ceiling tier. The three certified routes are the two executors, ceiling-tier and
+supervised, plus the ceiling-tier sub-planner, which the gate's trigger vocabulary gained the day
+that route shipped. Subagent types beginning `probe-` are allowlisted, since probe cells are
 legitimately briefless by design, and everything else passes silently.
 
 It runs three checks. The first is launch shape: the prompt or description names a
@@ -321,10 +482,26 @@ brief on purpose, because persona pointers legitimately ride the warmup slot rat
 line. The third is verified launch, at the ceiling tier only and once a brief resolves: the brief
 carries the warmup token, and a missing one means deny.
 
+Alongside those three checks the gate carries an **advisory arm**, and the split between them is
+worth reading closely, because it is this document's own placement rule applied inside a single
+hook. The checks judge the brief and can deny. The advisory judges the route and never denies. On
+the pass path, when a launch requests the ceiling tier by model argument from a generic agent type
+— any type outside the pinned set, with `probe-` already allowlisted — the gate emits one injected
+note naming the certified alternatives, the executor for executor work and the sub-planner for
+sub-planning, and asking for watchdog certification. The launch proceeds either way. Why advisory
+and not a fourth check: that shape is the measured substitution-prone class, and it is at the same
+time legal, sometimes necessary, and caused by a defect on the serving side that this gate does not
+own. Those three properties together describe section 4's advise level exactly. So the same gate
+enforces where the omission is silent and advises where refusal would be wrong.
+
 What you see is a denial of the launch with a reason of at most four lines: the check that failed,
-the element that is missing, the fix, and the template path. Silence it with `CRT_MODE=off` or
-`CRT_MODE=observe`; it is an intervention hook, so `on`, the default, is the only enforcing value.
-Grade: `live-measured`.
+the element that is missing, the fix, and the template path. On the advisory arm you see the
+injected note instead, and no decision at all. Silence it with `CRT_MODE=off` or `CRT_MODE=observe`;
+it is an intervention hook, so `on`, the default, is the only enforcing value. Grade: the deny
+checks are `fixture-measured (live instances)` and the advisory arm is
+`fixture-measured (incl. live instances)` — 88 guard cases with a red arm, plus live firing in a
+real session, where the gate denied a coordinator's own non-compliant probe launches and admitted
+both the corrected ones and a briefed run.
 
 **Plan-approval gate** — `~/.claude/hooks/plan-routing-gate.sh`, on PreToolUse with matcher
 `ExitPlanMode`. It triggers when the agent is about to present a plan for approval, and it lints
@@ -342,7 +519,19 @@ distinguishes a watched run from one that was routed and then abandoned. Owner-c
 requires a delegation track's owner to say more than the executor tag, or to carry the explicit
 fallback. Multi-stage completeness requires a track declaring a cascade topology to enumerate at
 least two stages, and a plan routing more than one delegation track to carry a waves or ordering
-section.
+section. Tier-explicitness requires three fields on every delegated track. The first is a
+`model_tier` drawn from the tier vocabulary, where the `n/a` sentinel belongs to main-agent and
+code tracks and fails on a delegated one. The second is a non-empty `effort`, with the placeholders
+`TBD`, `?` and `-` reading as absent. Last comes a `topology` drawn from the topology vocabulary,
+which is the fixed set of names for the ways a plan can arrange its subagents. Main-agent and code
+tracks are exempt from this check.
+
+One note on tier-explicitness. It is a minimum-explicitness check of the same shape as
+owner-completeness and multi-stage completeness: it forces the tier, effort and topology decisions
+to be recorded, and judges none of them. The recorded gap it closes is that `model_tier` was
+validated only when present, while `effort` and `topology` were never inspected at all, so a track
+that never made those decisions passed exactly like one that made them well. A `model_tier` that is
+present but unknown or barred remains the tier-ban check's finding and is not re-reported here.
 
 What you see is the approval call denied with the failing check named, so the plan is corrected
 before the user is asked to approve it.
@@ -351,7 +540,11 @@ One note on extraction. The current harness sends neither the plan text nor its 
 input, so the gate falls back to the newest plan file in the plans directory, accepted only when
 its modification time is within the last thirty minutes. Any miss — no directory, no file, too
 old, unreadable — is a logged fail-open rather than a lint failure. Silence it with
-`CRT_MODE=off` or `observe`. Grade: `live-measured`.
+`CRT_MODE=off` or `observe`. Grade: `fixture-measured (live instances)` for the gate and its
+owner-completeness and multi-stage checks; the tier-explicitness check carries its own, newer grade
+of `fixture-measured`, from 60 guard cases with both red arms printed plus one live plan passing in
+full. A check added to a gate with live instances does not inherit that gate's grade — it earns its
+own.
 
 **Alias dispatch guard** — `~/.claude/hooks/opus-dispatch-guard.sh`, on PreToolUse with matcher
 `Task|Agent`. It triggers on a launch whose model argument is a bare restricted alias, alone or
@@ -400,7 +593,7 @@ SWAPPED at call k, where the first divergent stamp is call k, decided the moment
 seen; and 2 for UNDETERMINED, meaning too few stamps yet, no assistant records, or unparseable
 input, and never a crash. It pairs with the warmup convention: the brief's persona and skill
 read-pointers are the opening calls, so the transcript reaches a certifiable length through useful
-work rather than throwaway calls. Grade: `live-measured`.
+work rather than throwaway calls. Grade: `fixture-measured (live instances)`.
 
 **Post-hoc audit** — `~/.claude/skills/model-verification/model_run_audit.py`. Run it as
 `python3 <path>/model_run_audit.py <project-dir | session.jsonl | session-dir> [--json|--tsv|--summary-only]`.
@@ -432,6 +625,81 @@ zero operator discipline required. What you see is a row appended to the error-m
 nudge only above the severity threshold. Grade: the child-scoped scan is `fixture-measured` with a
 live signal on real rows, and the substitution flag is `fixture-measured`, since no real
 substitution has crossed it live yet.
+
+**Adherence scorecard** — `<project>/dev/tools/adherence_scorecard.py`, with its fixture guard
+beside it. It registers on no event: you run it over transcripts after the fact, as
+`python3 <project>/dev/tools/adherence_scorecard.py <session.jsonl | dir-of-jsonl> [--json|--tsv] [--append <log>] [--since <date>] [--split <ISO-8601>]`.
+What you see is one row per session and phase, each of the six dimensions given as n over N with
+`-` where there was no opportunity: plan-routing, counting approval calls that were not denied;
+launch-brief, counting gated launches that named a brief or opened with the warmup token;
+certification, counting frontier-tier launches that actually ran and were certified afterwards;
+collect-outcome, counting turn segments holding a completed subagent result whose reply names one
+of the six outcomes; brief-persistence, counting named briefs that exist on disk; and
+tier-explicitness, the sixth dimension described in section 3, which takes every delegate-class
+launch and scores whether the tier was recorded at all.
+
+Why `--split` exists is worth the paragraph, because it is a measurement defect caught by
+measurement. The interrupted time-series was uninterpretable while a session was filed whole under
+its start date: one session straddling a gate's ship instant put 469 of its 471 pre-gate
+opportunities on the pre side while running for hours past that instant. So the dated unit is the
+opportunity, not the session, each dated by the transcript record that carries it, and a session
+emits up to two rows. An opportunity whose carrying record has no parseable timestamp is excluded
+from the denominator and counted separately, never guessed onto a side.
+
+One deviation is stated rather than hidden. The collect-outcome dimension matches its outcome
+tokens case-sensitively where the turn-verdict hook matches them case-insensitively. The hook is a
+fail-open nudge that should not annoy; a measurement whose token `continue` fires on ordinary prose
+measures nothing.
+
+Grade: `fixture-measured` for the tier-explicitness dimension, from 114 of 116 guard cases with the
+two deviations owned and stated, one real log of 368 rows across 13 columns read back clean, and
+the five older dimensions reproducing their previous cells identically, so the addition is provably
+additive. Its limit is the ladder's limit: it scores form, so a session can score six for six by
+recording well-formed decisions that were all wrong.
+
+### 6.4 Delivery
+
+This class is numbered last and sits at Level 2, because it is about how a convention physically
+arrives in a project — and stays current there.
+
+**Kit installer content refresh** — the workflow kit's own `install.sh`, run from the project root
+as `cd /your/project && bash <kit>/install.sh [--full] [--upgrade-rules] [--dry-run]`. It registers
+on no event: it is an operator command rather than a harness hook, and the one mechanism in this
+section with no standard-input contract and no exit-code politics.
+
+The failure it closes is a quiet one. The install was file-existence gated, and therefore
+version-blind. An adopter re-running it at a newer kit version received the new filenames, while
+every pre-existing file kept its old bytes and `.claude/settings.json` went on registering them.
+The project read as upgraded and behaved as the old version: a turn-verdict hook with no verdict
+check, a brief advisory with no role slot. Stranded content is worse than a missing file, because a
+missing file is visible and stale bytes are not.
+
+What it does now is refresh the artifacts the kit owns, if and only if they differ. Those artifacts
+are the hooks, the `dev/tools` diagnostics, the model-verification skill files, and every agent the
+kit places, the last of these found by a glob over the payload's agents directory, so that an agent
+added to the payload later is covered with no edit to the installer. Each is byte-compared against
+the payload source, and where they differ the project's copy goes into a dated backup directory
+first, one directory per run and its path printed, and only then is replaced. No backup, no
+replace. Identical files are skipped
+exactly as before, so a same-version re-run is still a no-op that creates no backup directory at
+all.
+
+What is never refreshed, under the unchanged seed-if-absent contract: the root `CLAUDE.md` outside
+the marker span, the `.claude/CLAUDE.md` pointer stub, the contents of `dev/briefs`, the ledger,
+plan and planner-memory templates, `STRUCTURE_RULES.md` unless you opt in with `--upgrade-rules`,
+and anything the kit does not ship at all. The refresh iterates payload sources, so a file the kit
+never shipped is never visited, let alone written.
+
+Why this belongs on the ladder rather than beside it: every level above rests on its mechanism
+being present and current in the project, and that is a property no level can check about itself.
+From inside a session, a hook one version behind looks exactly like the current one, fires the old
+logic, and agrees with a doc set describing the new. That is the one failure mode the ladder cannot
+catch from above, so it is closed from below, at delivery.
+
+Grade: `fixture-measured (incl. shipped-artifact arms)`. The red arm ran 115 passing with 14
+stranded-byte failures, and the fixed installer ran 129 passing with 0, independently re-run at
+129 and 0. The upgrade arm was exercised against the shipped release tree: a deliberately stale
+hook was backed up and refreshed, with the backup comparing byte-identical to the pre-run copy.
 
 ## 7. The control surface
 

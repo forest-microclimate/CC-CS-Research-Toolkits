@@ -90,4 +90,4 @@ pandoc <name>.md -o /dev/null -t pdf --pdf-engine="$ENGINE" \
 `<name>.md` preserves every atom of the root; `<name>.pdf` exists (+ `<name>.docx` if "docx" was requested); the QA gate reads 0.
 
 ## Refs
-`~/.claude/rules/doc-style.machine.md` (RULE.functional_pipeline; INVARIANT.machine_is_root) · `~/.claude/methodology/DOC_STYLE_MACHINE_VS_HUMAN.machine.md` (TRANSLATE.machine_to_human; INVARIANT) · `machine-doc-reviewer` agent (atom-preservation audit) · the projects' `docs/functional/render.sh` (mermaid→typst path).
+`~/.claude/rules/doc-style.machine.md` (RULE.functional_pipeline; INVARIANT.machine_is_root) · `~/.claude/methodology/DOC_STYLE_MACHINE_VS_HUMAN.machine.md` (TRANSLATE.machine_to_human; INVARIANT) · `machine-doc-reviewer` agent (atom-preservation audit) · the projects' `docs/functional/render.sh` (mermaid→typst path) — NOTE: that precedent script is NOT shipped with this skill and is present in no toolkit tree, so treat the reference as historical and invoke `mmdc` and `typst` directly per the mermaid/typst path above.
